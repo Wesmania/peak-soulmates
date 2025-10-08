@@ -1,31 +1,39 @@
 <Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <AssemblyName>com.github.Ryocery.SharedDamage</AssemblyName>
+        <AssemblyTitle>SharedDamage</AssemblyTitle>
+        <Version>0.1.0</Version>
+    </PropertyGroup>
 
-  <PropertyGroup>
-    <!-- This is the most appropriate target framework for the game's Unity version. -->
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <!-- This is the GUID of your mod. Example: com.github.YourAccount.BepInExTemplate -->
-    <AssemblyName>com.github.Ryocery.SharedDamage</AssemblyName>
-    <!-- This is the display name of your mod. Example: BepInEx Template -->
-    <AssemblyTitle>SharedDamage</AssemblyTitle>
-    <!-- This is the version number of your mod. -->
-    <Version>0.1.0</Version>
-  </PropertyGroup>
-
-  <!--
-  How to include thunderstore mods as dependencies via nuget
-
-  We have already added the windows10ce nuget feed to this project
-  in NuGet.Config so all you need to do is list a dependency like
-  this:
-
-  <ItemGroup>
-    <PackageReference Include="ModTeam-ModName" Version="1.0.0" Private="False"/>
-  </ItemGroup>
-
-  Private="false" will stop it from being copied to the output folder
-  during build. This will cause the mod to be downloaded and its
-  methods will be available at compile time for your code. You'll still
-  need to add it as a dependency in your manifest.json, of course
-  -->
-
+    <ItemGroup>
+        <Reference Include="Assembly-CSharp">
+            <HintPath>D:\SteamLibrary\steamapps\common\PEAK\PEAK_Data\Managed\Assembly-CSharp.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine">
+            <HintPath>D:\SteamLibrary\steamapps\common\PEAK\PEAK_Data\Managed\UnityEngine.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>D:\SteamLibrary\steamapps\common\PEAK\PEAK_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.PhysicsModule">
+            <HintPath>D:\SteamLibrary\steamapps\common\PEAK\PEAK_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="PhotonRealtime">
+            <HintPath>D:\SteamLibrary\steamapps\common\PEAK\PEAK_Data\Managed\PhotonRealtime.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="PhotonUnityNetworking">
+            <HintPath>D:\SteamLibrary\steamapps\common\PEAK\PEAK_Data\Managed\PhotonUnityNetworking.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Photon3Unity3D">
+            <HintPath>D:\SteamLibrary\steamapps\common\PEAK\PEAK_Data\Managed\Photon3Unity3D.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
 </Project>
