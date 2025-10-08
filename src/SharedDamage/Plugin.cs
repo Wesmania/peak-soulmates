@@ -57,13 +57,12 @@ public partial class Plugin : BaseUnityPlugin {
             int statusTypeInt = (int) data[0];
             float amount = (float) data[1];
             int senderActorNumber = photonEvent.Sender;
-            
+        
             Character localChar = Character.localCharacter;
             if (localChar == null || localChar.data.dead || localChar.warping) return;
             if (localChar.photonView.Owner.ActorNumber == senderActorNumber) return;
-            
+        
             CharacterAfflictions.STATUSTYPE statusType = (CharacterAfflictions.STATUSTYPE)statusTypeInt;
-            if (!SharedDamagePatch.ShouldPropagate(statusType)) return;
             SharedDamagePatch.isReceivingSharedDamage.Add(localChar.photonView.ViewID);
             
             try {
