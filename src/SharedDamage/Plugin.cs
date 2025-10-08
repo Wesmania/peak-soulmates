@@ -120,8 +120,8 @@ public class SharedDamagePatch {
             Plugin.Log.LogError($"Error in SetStatusPostfix: {ex}");
         }
     }
-    
-    internal static bool ShouldPropagate(CharacterAfflictions.STATUSTYPE statusType) {
+
+    private static bool ShouldPropagate(CharacterAfflictions.STATUSTYPE statusType) {
         return statusType switch {
             CharacterAfflictions.STATUSTYPE.Poison => Plugin.EnablePoison.Value,
             CharacterAfflictions.STATUSTYPE.Injury => Plugin.EnableInjury.Value,
