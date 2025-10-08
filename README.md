@@ -1,31 +1,24 @@
 # SharedDamage
 
-Describe your project here!
+A multiplayer mod that shares damage between all players who have it installed.
 
-## Template Instructions
+## Features
 
-You can remove this section after you've set up your project.
+- Damage taken by any player is transferred to all other players additively
+- Configurable damage types (Poison, Injury, Thorns, Cold, Hot, Drowsy, Curse)
+- Hunger and Weight are never shared
+- Only adds damage, never removes it (healing and recovery remains individual)
 
-Next steps:
+## Configuration
 
-- Create a copy of the `Config.Build.user.props.template` file and name it `Config.Build.user.props`
-  - This will automate copying your plugin assembly to `BepInEx/plugins/`
-  - Configure the paths to point to your game path and your `BepInEx/plugins/`
-  - Game assembly references should work if the path to the game is valid
-- Search `TODO` in the whole project to see what you should configure or modify
+Each player configures which affliction types they want to **receive** from others. This does not affect what you send.
 
-### Thunderstore Packaging
+If you take fire damage with "EnableHot" enabled, it will transfer to all other players with the mod, regardless of their config settings. However, if another player has "EnableHot" disabled, they will not receive fire damage from others.
 
-This template comes with Thunderstore packaging built-in, using [TCLI](<https://github.com/thunderstore-io/thunderstore-cli>).
+## Installation
 
-You can build Thunderstore packages by running:
+1. Extract the mod folder into `BepInEx/plugins`
 
-```sh
-dotnet build -c Release -target:PackTS -v d
-```
+## Multiplayer Compatibility
 
-> [!NOTE]  
-> You can learn about different build options with `dotnet build --help`.  
-> `-c` is short for `--configuration` and `-v d` is `--verbosity detailed`.
-
-The built package will be found at `artifacts/thunderstore/`.
+This mod uses custom network events. Because of this it's best that all players in the lobby have the mod installed. Players without the mod will not send or receive shared damage.
