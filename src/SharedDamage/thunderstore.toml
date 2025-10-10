@@ -7,7 +7,7 @@ repository = "https://thunderstore.io"
 [package]
 namespace = "Ryocery"
 name = "SharedDamage"
-description = "Makes it so any taken affliction transfers to all other players additively."
+description = "Makes it so any affliction received transfers to all other players additively."
 websiteUrl = "https://github.com/Ryocery/shareddamage-peak"
 containsNsfwContent = false
 
