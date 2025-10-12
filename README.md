@@ -12,6 +12,7 @@ TODO.
 
 ## Planned features
 
+* Logo that's not a half-assed "shared damage" ripoff.
 * Better way to indicate who's your soulmate.
 * Making healing affect both players as well.
 * Sharing hunger and weight.
