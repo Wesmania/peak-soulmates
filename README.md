@@ -1,19 +1,10 @@
-# SharedDamage
+# Soulbound
 
-A multiplayer mod that shares damage between all players who have it installed.
+A multiplayer mod that matches players into pairs, where each player in a pair shares damage of the other. Based on the "shared damage" mod.
 
 ## Features
 
-- Damage taken by any player is transferred to all other players additively
-- Configurable damage types (Poison, Injury, Thorns, Cold, Hot, Drowsy, Curse)
-- Hunger and Weight are never shared
-- Only adds damage, never removes it (healing and recovery remains individual)
-
-## Configuration
-
-Each player configures which affliction types they want to **receive** from others. This does not affect what you send.
-
-If you take fire damage with "EnableHot" enabled, it will transfer to all other players with the mod, regardless of their config settings. However, if another player has "EnableHot" disabled, they will not receive fire damage from others.
+TODO.
 
 ## Installation
 
