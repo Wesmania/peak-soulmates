@@ -6,6 +6,13 @@ A multiplayer mod that matches players into pairs, where each player in a pair s
 
 TODO.
 
+## Planned features
+
+* Better way to indicate who's your soulmate.
+* Making healing affect both players as well.
+* Sharing hunger and weight.
+* Configuration options: what damage is shared, damage multipliers, etc.
+
 ## Installation
 
 1. Extract the mod folder into `BepInEx/plugins`
