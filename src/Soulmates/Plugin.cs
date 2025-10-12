@@ -180,10 +180,7 @@ public partial class Plugin : BaseUnityPlugin
                 if (isReceivingSharedDamage.Contains(__instance.character.photonView.ViewID)) return;
 
                 float increase = amount - __state;
-                if (increase > 0)
-                {
-                    SendSharedDamageEvent(statusType, increase);
-                }
+                SendSharedDamageEvent(statusType, increase);
             }
             catch (System.Exception ex)
             {
