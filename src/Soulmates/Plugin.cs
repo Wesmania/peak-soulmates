@@ -11,7 +11,7 @@ using pworld.Scripts.Extensions;
 using pworld.Scripts;
 using System;
 
-namespace SharedDamage;
+namespace Soulmates;
 
 [BepInAutoPlugin]
 public partial class Plugin : BaseUnityPlugin
