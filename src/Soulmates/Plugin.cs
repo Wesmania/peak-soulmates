@@ -10,6 +10,10 @@ using System.Linq;
 using pworld.Scripts.Extensions;
 using pworld.Scripts;
 using System;
+using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+using System.Collections;
 
 namespace Soulmates;
 
@@ -19,8 +23,8 @@ public partial class Plugin : BaseUnityPlugin
     internal static ManualLogSource Log { get; private set; } = null!;
     internal static ConfigEntry<bool> EnablePoison { get; private set; } = null!;
 
-    internal const byte SHARED_DAMAGE_EVENT_CODE = 200;
-    internal const byte RECALCULATE_SOULMATES_EVENT_CODE = 201;
+    internal const byte SHARED_DAMAGE_EVENT_CODE = 198;
+    internal const byte RECALCULATE_SOULMATES_EVENT_CODE = 197;
 
     private static int globalSoulmate = -1;
 
@@ -65,10 +69,18 @@ public partial class Plugin : BaseUnityPlugin
             int senderActorNumber = photonEvent.Sender;
 
             Character localChar = Character.localCharacter;
-            if (localChar == null || localChar.data.dead || localChar.warping) return;
+            if (localChar == null || localChar.data.dead || localChar.warping)
+            {
+                Log.LogInfo("Character is missing or dead, not applying shared damage");
+                return;
+            }
             // Sanity check
-            if (localChar.photonView.Owner.ActorNumber == senderActorNumber) return;
-            if (senderActorNumber != globalSoulmate) return;
+            //if (localChar.photonView.Owner.ActorNumber == senderActorNumber) return;
+            if (senderActorNumber != globalSoulmate)
+            {
+                Log.LogInfo(String.Format("Sender {0} not matching soulmate {1}", senderActorNumber, globalSoulmate));
+                return;
+            }
 
             CharacterAfflictions.STATUSTYPE statusType = (CharacterAfflictions.STATUSTYPE)statusTypeInt;
             SharedDamagePatch.isReceivingSharedDamage.Add(localChar.photonView.ViewID);
@@ -84,7 +96,7 @@ public partial class Plugin : BaseUnityPlugin
             }
         }
     }
-    private static List<int> RecalculateSoulmate()
+    public static List<int>? RecalculateSoulmate()
     {
         Log.LogInfo("Recalculating soulmate");
 
@@ -119,6 +131,8 @@ public partial class Plugin : BaseUnityPlugin
             var soulmate_index = pos % 2 == 0 ? pos + 1 : pos - 1;
             if (soulmate_index >= actors.Count)
             {
+                Log.LogInfo(String.Format("I am last player on the list and have no soulmate"));
+                SoulmateTextPatch.SetSoulmateText("Soulmate: None", 10);
                 return;
             }
             globalSoulmate = actors[soulmate_index];
@@ -132,8 +146,15 @@ public partial class Plugin : BaseUnityPlugin
             }
             var name = soulmate.characterName;
             Log.LogInfo(String.Format("My soulmate is {0} (actor {1})", name, globalSoulmate));
-            GUIManager.instance.SetHeroTitle("Soulmate: " + name, null);
+            SoulmateTextPatch.SetSoulmateText("Soulmate: " + name, 10);
         }
+    }
+    public static void SendRecalculateSoulmateEvent(List<int> actors)
+    {
+        Plugin.Log.LogInfo("Sending recalculate soulmate event...");
+        object[] content = actors.Select(x => (object)x).ToArray();
+        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
+        PhotonNetwork.RaiseEvent(Plugin.RECALCULATE_SOULMATES_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
 
     [HarmonyPatch(typeof(CharacterAfflictions))]
@@ -194,11 +215,10 @@ public partial class Plugin : BaseUnityPlugin
             RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others };
             PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
         }
-
     }
 
     [HarmonyPatch(typeof(Character))]
-    public class RecalculateSoulmatesPatch
+    public static class RecalculateSoulmatesPatch
     {
         [HarmonyPostfix]
         [HarmonyPatch("StartPassedOutOnTheBeach")]
@@ -208,26 +228,102 @@ public partial class Plugin : BaseUnityPlugin
             var new_mates = Plugin.RecalculateSoulmate();
             if (new_mates != null)
             {
-                SendRecalculateSoulmateEvent(new_mates);
+                Plugin.SendRecalculateSoulmateEvent(new_mates);
             }
         }
+    }
+
+    [HarmonyPatch(typeof(StaminaBar))]
+    public static class RecalculateSoulmatesPatch2
+    {
         [HarmonyPostfix]
-        [HarmonyPatch("MoraleBoost", typeof(float), typeof(int))]
-        public static void MoraleBoostPostfix(Character __instance, float staminaAdd, int scoutCount)
+        [HarmonyPatch("PlayMoraleBoost", typeof(int))]
+        public static void PlayMoraleBoostPostfix(StaminaBar __instance, int scoutCount)
         {
             Plugin.Log.LogInfo("Morale boost function");
             var new_mates = Plugin.RecalculateSoulmate();
             if (new_mates != null)
             {
-                SendRecalculateSoulmateEvent(new_mates);
+                Plugin.SendRecalculateSoulmateEvent(new_mates);
             }
         }
-        private static void SendRecalculateSoulmateEvent(List<int> actors)
+    }
+
+    public class TextSetter : MonoBehaviour
+    {
+        public void SetSoulmateText(string text, float delay)
         {
-            Plugin.Log.LogInfo("Sending recalculate soulmate event...");
-            object[] content = actors.Select(x => (object)x).ToArray();
-            RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others };
-            PhotonNetwork.RaiseEvent(Plugin.RECALCULATE_SOULMATES_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+            Plugin.Log.LogInfo("In SetSoulmateText");
+            StartCoroutine(TextCoroutine());
+            IEnumerator TextCoroutine()
+            {
+                Plugin.Log.LogInfo("In SetSoulmateText coroutine");
+                yield return new WaitForSeconds(delay);
+                if (SoulmateTextPatch.text != null)
+                {
+                    Plugin.Log.LogInfo("In SetSoulmateText coroutine, set text");
+                    SoulmateTextPatch.text.text = text;
+                }
+                yield return new WaitForSeconds(10f);
+                if (SoulmateTextPatch.text != null)
+                {
+                    Plugin.Log.LogInfo("In SetSoulmateText coroutine, reset text");
+                    SoulmateTextPatch.text.text = "";
+                }
+                Plugin.Log.LogInfo("In SetSoulmateText coroutine end");
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(GUIManager))]
+    public static class SoulmateTextPatch
+    {
+        public static Canvas? SoulmatePrompt;
+        public static TextMeshProUGUI? text;
+        public static TMP_FontAsset? darumaDropOneFont;
+        public static TextSetter? text_setter;
+
+        [HarmonyPostfix]
+        [HarmonyPatch("Start")]
+        public static void StartPostfix(GUIManager __instance)
+        {
+            var transform = __instance.transform;
+            var textChatCanvasObj = new GameObject("SoulmatePrompt");
+            textChatCanvasObj.transform.SetParent(transform, false);
+            SoulmatePrompt = textChatCanvasObj.AddComponent<Canvas>();
+            SoulmatePrompt.renderMode = RenderMode.ScreenSpaceCamera;
+
+            var textChatCanvasScaler = SoulmatePrompt.gameObject.GetComponent<CanvasScaler>() ?? SoulmatePrompt.gameObject.AddComponent<CanvasScaler>();
+            textChatCanvasScaler.referencePixelsPerUnit = 100;
+            textChatCanvasScaler.matchWidthOrHeight = 1;
+            textChatCanvasScaler.referenceResolution = new Vector2(1920, 1080);
+            textChatCanvasScaler.scaleFactor = 1;
+            textChatCanvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            textChatCanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+
+            var textChatObj = new GameObject("TextChat");
+            textChatObj.transform.SetParent(SoulmatePrompt.transform, false);
+            text = textChatObj.AddComponent<TextMeshProUGUI>();
+            text_setter = textChatObj.AddComponent<TextSetter>();
+            try
+            {
+                darumaDropOneFont = GUIManager.instance?.itemPromptDrop?.font;
+            }
+            catch { }
+            text.text = "";
+            if (darumaDropOneFont != null)
+            {
+                text.font = darumaDropOneFont;
+            }
+            text.horizontalAlignment = HorizontalAlignmentOptions.Center;
+        }
+
+        public static void SetSoulmateText(string text, float delay)
+        {
+            if (text_setter != null)
+            {
+                text_setter.SetSoulmateText(text, delay);
+            }
         }
     }
 }
