@@ -2,6 +2,10 @@
 
 A multiplayer mod that matches players into pairs, where each player in a pair shares damage of the other. Based on the "shared damage" mod.
 
+## WARNING WARNING WARNING
+
+THIS MOD IS UNDER DEVELOPMENT. For now it probably just crashes or something, it's been like an hour of untested editing of another mod.
+
 ## Features
 
 TODO.
