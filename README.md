@@ -1,4 +1,4 @@
-# Soulbound
+# Soulmates
 
 A multiplayer mod that matches players into pairs, where each player in a pair shares damage of the other. Based on the "shared damage" mod.
 
