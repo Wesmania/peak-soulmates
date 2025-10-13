@@ -4,18 +4,20 @@ A multiplayer mod that matches players into pairs, where each player in a pair s
 
 ## WARNING WARNING WARNING
 
-THIS MOD IS UNDER DEVELOPMENT. For now it probably just crashes or something, it's been like an hour of untested editing of another mod.
+THIS MOD IS UNDER DEVELOPMENT. It doesn't crash at start, but I don't know yet what it does. Have fun.
 
 ## Features
 
-TODO.
+* Sharing damage! (if it's not buggy)
+* Sharing hunder and weight! (if it's not buggy)
+* Sharing healing! (if it's not buggy)
+* New soulmates chosen at every biome! (if it's not buggy)
 
 ## Planned features
 
 * Logo that's not a half-assed "shared damage" ripoff.
 * Better way to indicate who's your soulmate.
-* Making healing affect both players as well.
-* Sharing hunger and weight.
+* Fix bugs.
 * Configuration options: what damage is shared, damage multipliers, etc.
 
 ## Installation
@@ -24,4 +26,4 @@ TODO.
 
 ## Multiplayer Compatibility
 
-This mod uses custom network events. Because of this it's best that all players in the lobby have the mod installed. Players without the mod will not send or receive shared damage.
+This mod uses custom network events. Because of this it's best that all players in the lobby have the mod installed. If some players don't have the mod, weird and bad things will probably happen.
