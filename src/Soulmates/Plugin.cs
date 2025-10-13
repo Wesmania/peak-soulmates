@@ -269,8 +269,7 @@ public partial class Plugin : BaseUnityPlugin
         if (soulmate_index >= soulmates.Count)
         {
             Log.LogInfo(String.Format("I am last player on the list and have no soulmate"));
-            // return -1;
-            return my_actor;
+            return -1;
         }
         else
         {
@@ -785,7 +784,6 @@ public static class RecalculateSoulmatesPatch
         Plugin.Log.LogInfo("Passed out on the beach function");
         if (!__instance.IsLocal)
         {
-            Plugin.Log.LogInfo("Skipping!");
             return;
         }
         var new_mates = Plugin.RecalculateSoulmate(true);
