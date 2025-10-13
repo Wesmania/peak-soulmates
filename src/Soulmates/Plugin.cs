@@ -341,10 +341,11 @@ public partial class Plugin : BaseUnityPlugin
             playerWeights.Clear();
             connectToSoulmateMe = null;
             connectToSoulmateThem = null;
-            return;
         }
-
-        ConnectToNewSoulmate(soulmates);
+        else
+        {
+            ConnectToNewSoulmate(soulmates);
+        }
 
         var soulmate = PhotonNetwork.PlayerList.ToList().Find(c => c.ActorNumber == globalSoulmate);
         if (soulmate == null)
