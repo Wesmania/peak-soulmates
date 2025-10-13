@@ -18,19 +18,24 @@ using System.Runtime.Serialization;
 using System.Diagnostics;
 using Sirenix.Utilities;
 using UnityEngine.Rendering;
+using AsmResolver.Patching;
+using Newtonsoft.Json;
 
 namespace Soulmates;
 
 public static class Extensions
 {
-    extension(CharacterAfflictions.STATUSTYPE t)
+    public static bool isAbsolute(this CharacterAfflictions.STATUSTYPE t)
     {
-        public bool isAbsolute() => t == CharacterAfflictions.STATUSTYPE.Weight || t == CharacterAfflictions.STATUSTYPE.Thorns;
-        public bool isShared() => t != CharacterAfflictions.STATUSTYPE.Curse;
+        return t == CharacterAfflictions.STATUSTYPE.Weight || t == CharacterAfflictions.STATUSTYPE.Thorns;
     }
-    extension(Character c)
+    public static bool isShared(this CharacterAfflictions.STATUSTYPE t)
     {
-        public bool isLiv() => !c.data.dead && !c.warping;
+        return t != CharacterAfflictions.STATUSTYPE.Curse;
+    }
+    public static bool isLiv(this Character c)
+    {
+        return !c.data.dead && !c.warping;
     }
 }
 
@@ -75,6 +80,15 @@ public partial class Plugin : BaseUnityPlugin
         public List<int> soulmates;
         public Dictionary<int, Dictionary<CharacterAfflictions.STATUSTYPE, float>> playerStatus;
         public bool firstTime;
+
+        public string Serialize()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+        public static RecalculateSoulmatesEvent Deserialize(string s)
+        {
+            return JsonConvert.DeserializeObject<RecalculateSoulmatesEvent>(s);
+        }
     }
 
     [Serializable]
@@ -91,6 +105,14 @@ public partial class Plugin : BaseUnityPlugin
         public CharacterAfflictions.STATUSTYPE type;
         public float value;
         public SharedDamageKind kind;
+        public string Serialize()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+        public static SharedDamage Deserialize(string s)
+        {
+            return JsonConvert.DeserializeObject<SharedDamage>(s);
+        }
     }
 
     [Serializable]
@@ -100,6 +122,14 @@ public partial class Plugin : BaseUnityPlugin
         public float thorns = 0.0f;
 
         public UpdateWeight() { }
+        public string Serialize()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+        public static UpdateWeight Deserialize(string s)
+        {
+            return JsonConvert.DeserializeObject<UpdateWeight>(s);
+        }
     }
     
     [Serializable]
@@ -108,6 +138,14 @@ public partial class Plugin : BaseUnityPlugin
         public int from;
         public int to;
         public Dictionary<CharacterAfflictions.STATUSTYPE, float> status;
+        public string Serialize()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+        public static ConnectToSoulmate Deserialize(string s)
+        {
+            return JsonConvert.DeserializeObject<ConnectToSoulmate>(s);
+        }
     }
     enum SoulmateEventType
     {
@@ -156,7 +194,7 @@ public partial class Plugin : BaseUnityPlugin
                 break;
             case (int)SoulmateEventType.CONNECT_TO_SOULMATE:
                 OnConnectToSoulmate(photonEvent);
-                break
+                break;
             default:
                 return;
         }
@@ -164,7 +202,7 @@ public partial class Plugin : BaseUnityPlugin
     private void OnSharedDamageEvent(EventData photonEvent)
     {
         object[] data = (object[])photonEvent.CustomData;
-        var damage = (SharedDamage)data[1];
+        var damage = SharedDamage.Deserialize((string)data[1]);
         int senderActorNumber = photonEvent.Sender;
 
         if (!localCharIsReady())
@@ -231,7 +269,8 @@ public partial class Plugin : BaseUnityPlugin
         if (soulmate_index >= soulmates.Count)
         {
             Log.LogInfo(String.Format("I am last player on the list and have no soulmate"));
-            return -1;
+            // return -1;
+            return my_actor;
         }
         else
         {
@@ -280,7 +319,7 @@ public partial class Plugin : BaseUnityPlugin
     {
         Log.LogInfo("Received recalculate soulmate event");
         object[] data = (object[])photonEvent.CustomData;
-        var soulmates = (RecalculateSoulmatesEvent)data[1];
+        var soulmates = RecalculateSoulmatesEvent.Deserialize((string)data[1]);
 
         previousSoulmates = soulmates;
 
@@ -301,19 +340,10 @@ public partial class Plugin : BaseUnityPlugin
         {
             // Starting game. Clear data, do nothing else.
             playerWeights.Clear();
+            connectToSoulmateMe = null;
+            connectToSoulmateThem = null;
             return;
         }
-
-        // Otherwise, let's handle our soulmate status.
-        /*  TODO: use elsewhere. Host will tell us our status.
-        bool oldSoulmateIsAlive = false;
-        var oldSoulmate = GetSoulmate(oldSoulmateIndex);
-        if (oldSoulmate != null)
-        {
-            oldSoulmateIsAlive = !oldSoulmate.data.dead;
-        }
-        DisconnectFromSoulmate(oldSoulmateIsAlive);
-        */
 
         ConnectToNewSoulmate(soulmates);
 
@@ -332,7 +362,7 @@ public partial class Plugin : BaseUnityPlugin
     {
         Log.LogInfo("Received recalculate weight event");
         object[] data = (object[])photonEvent.CustomData;
-        var weight = (UpdateWeight)data[1];
+        var weight = UpdateWeight.Deserialize((string)data[1]);
         int senderActorNumber = photonEvent.Sender;
 
         var oldWeights = playerWeights.GetValueOrDefault(senderActorNumber, new UpdateWeight());
@@ -486,7 +516,7 @@ public partial class Plugin : BaseUnityPlugin
     public static void SendRecalculateSoulmateEvent(RecalculateSoulmatesEvent e)
     {
         Plugin.Log.LogInfo("Sending recalculate soulmate event...");
-        object[] content = { (int)SoulmateEventType.RECALCULATE, e };
+        object[] content = [(int)SoulmateEventType.RECALCULATE, e.Serialize()];
         RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
@@ -498,14 +528,14 @@ public partial class Plugin : BaseUnityPlugin
             return;
         }
         Log.LogInfo($"Sending shared damage: {e.value} {e.type} {e.kind}");
-        object[] content = [(int) SoulmateEventType.DAMAGE, e];
+        object[] content = [(int) SoulmateEventType.DAMAGE, e.Serialize()];
         RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
     public static void SendUpdateWeightEvent(UpdateWeight e)
     {
         Log.LogInfo($"Sending weight update: weight {e.weight}, thorns {e.thorns}");
-        object[] content = [(int)SoulmateEventType.UPDATE_WEIGHT, e];
+        object[] content = [(int)SoulmateEventType.UPDATE_WEIGHT, e.Serialize()];
         RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
@@ -593,7 +623,7 @@ public partial class Plugin : BaseUnityPlugin
         }
 
         object[] data = (object[])photonEvent.CustomData;
-        var c = (ConnectToSoulmate)data[1];
+        var c = ConnectToSoulmate.Deserialize((string)data[1]);
         int senderActorNumber = photonEvent.Sender;
         if (senderActorNumber != globalSoulmate)
         {
@@ -655,7 +685,7 @@ public partial class Plugin : BaseUnityPlugin
     public static void SendConnectToSoulmateEvent(ConnectToSoulmate e)
     {
         Plugin.Log.LogInfo("Sending recalculate soulmate event...");
-        object[] content = { (int)SoulmateEventType.CONNECT_TO_SOULMATE, e };
+        object[] content = [(int)SoulmateEventType.CONNECT_TO_SOULMATE, e.Serialize()];
         RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
@@ -755,6 +785,7 @@ public static class RecalculateSoulmatesPatch
         Plugin.Log.LogInfo("Passed out on the beach function");
         if (!__instance.IsLocal)
         {
+            Plugin.Log.LogInfo("Skipping!");
             return;
         }
         var new_mates = Plugin.RecalculateSoulmate(true);
