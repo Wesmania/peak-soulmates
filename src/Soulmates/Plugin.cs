@@ -249,15 +249,22 @@ public partial class Plugin : BaseUnityPlugin
             ConnectToNewSoulmate(soulmates);
         }
 
-        var soulmate = PhotonNetwork.PlayerList.ToList().Find(c => c.ActorNumber == globalSoulmate);
-        if (soulmate == null)
+        if (globalSoulmate == -1)
         {
-            Log.LogError(String.Format("Uh-oh, did not find soulmate with actor ID {0}!", globalSoulmate));
+            SoulmateTextPatch.SetSoulmateText("Soulmate: None", 10);
             return;
         }
-        var name = soulmate.NickName;
-        Log.LogInfo(String.Format("My soulmate is {0} (actor {1})", name, globalSoulmate));
-        SoulmateTextPatch.SetSoulmateText("Soulmate: " + name, 10);
+
+        try
+        {
+            var soulmate = PhotonNetwork.PlayerList.ToList().Find(c => c.ActorNumber == globalSoulmate);
+            var name = soulmate.NickName;
+            Log.LogInfo(String.Format("My soulmate is {0} (actor {1})", name, globalSoulmate));
+            SoulmateTextPatch.SetSoulmateText("Soulmate: " + name, 10);
+        } catch (ArgumentNullException)
+        {
+            Log.LogError(String.Format("Uh-oh, did not find soulmate with actor ID {0}!", globalSoulmate));
+        }
     }
 
     public static RecalculateSoulmatesEvent? RecalculateSoulmate(bool firstTime)
