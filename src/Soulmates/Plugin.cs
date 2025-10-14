@@ -31,7 +31,7 @@ public static class Extensions
 public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log { get; private set; } = null!;
-    internal static ConfigEntry<bool> EnablePoison { get; private set; } = null!;
+    internal static ConfigEntry<bool> EnableSharedBonk { get; private set; } = null!;
 
     internal const byte SHARED_DAMAGE_EVENT_CODE = 198;
     private void Awake()
@@ -39,7 +39,7 @@ public partial class Plugin : BaseUnityPlugin
         Log = Logger;
         Log.LogInfo($"Plugin {Name} version 0.1.10 is loaded!");
 
-        EnablePoison = Config.Bind("Shared Status Effects", "EnablePoison", true, "Share Poison damage");
+        EnableSharedBonk = Config.Bind("Shared Bonk", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
 
         PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
 
@@ -98,6 +98,9 @@ public partial class Plugin : BaseUnityPlugin
                 break;
             case (int)SoulmateEventType.CONNECT_TO_SOULMATE:
                 ConnectSoulmate.OnConnectToSoulmate(photonEvent);
+                break;
+            case (int)SoulmateEventType.SHARED_BONK:
+                Bonk.OnSharedBonkEvent(photonEvent);
                 break;
             default:
                 return;

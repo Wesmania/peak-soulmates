@@ -38,4 +38,12 @@ public static class Events
         RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
+
+    public static void SendSharedBonkEvent(SharedBonk e)
+    {
+        Plugin.Log.LogInfo("Sending bonk");
+        object[] content = [(int)SoulmateEventType.SHARED_BONK, e.Serialize()];
+        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others };
+        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+    }
 }

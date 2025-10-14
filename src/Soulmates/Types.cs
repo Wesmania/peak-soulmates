@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Soulmates;
 
@@ -77,10 +78,28 @@ public struct ConnectToSoulmate
         return JsonConvert.DeserializeObject<ConnectToSoulmate>(s);
     }
 }
+
+[Serializable]
+public struct SharedBonk
+{
+    public float ragdollTime;
+    public Vector3 force;
+    public Vector3 contactPoint;
+    public float range;
+    public string Serialize()
+    {
+        return JsonConvert.SerializeObject(this);
+    }
+    public static SharedBonk Deserialize(string s)
+    {
+        return JsonConvert.DeserializeObject<SharedBonk>(s);
+    }
+}
 enum SoulmateEventType
 {
     RECALCULATE = 0,
     DAMAGE = 1,
     UPDATE_WEIGHT = 2,
-    CONNECT_TO_SOULMATE = 3
+    CONNECT_TO_SOULMATE = 3,
+    SHARED_BONK = 4,
 }
