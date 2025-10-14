@@ -10,6 +10,11 @@ First kind of working version
 
 ## V0.1.9
 
-Split things up into files
-Hopefully fix weight calculations
-Hack around morale boost function being called hundreds of times
+* Split things up into files
+* Hopefully fix weight calculations
+* Hack around morale boost function being called hundreds of times
+
+## V0.1.10
+
+* Fixed picking new soulmates at campfire
+* Less spammy and more useful logs
