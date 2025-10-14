@@ -4,23 +4,10 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using Photon.Pun;
-using Photon.Realtime;
 using ExitGames.Client.Photon;
 using System.Linq;
 using pworld.Scripts.Extensions;
-using pworld.Scripts;
 using System;
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
-using System.Collections;
-using System.Runtime.Serialization;
-using System.Diagnostics;
-using Sirenix.Utilities;
-using UnityEngine.Rendering;
-using AsmResolver.Patching;
-using Newtonsoft.Json;
-using UnityEngine.SocialPlatforms;
 
 namespace Soulmates;
 
@@ -86,31 +73,8 @@ public partial class Plugin : BaseUnityPlugin
         return true;
     }
 
-    // Returns true is weight has to be propagated.
-    public static bool updateLocalWeight(UpdateWeight w)
-    {
-        Character localChar = Character.localCharacter;
-        if (localChar == null)
-        {
-            return false;
-        }
-        int id = localChar.photonView.Owner.ActorNumber;
-        if (!playerWeights.ContainsKey(id))
-        {
-            return true;
-        }
-        var old = playerWeights[id];
-        playerWeights[id] = w;
-        return old.weight != w.weight || old.thorns != w.thorns;
-    }
-
-    private static int globalSoulmate = -1;
-    private static bool globalConnectedToSoulmate = false;
-    private static Dictionary<int, UpdateWeight> playerWeights = new Dictionary<int, UpdateWeight>();
+    public static int globalSoulmate = -1;
     private static RecalculateSoulmatesEvent? previousSoulmates;
-    private static ConnectToSoulmate? connectToSoulmateMe;
-    private static ConnectToSoulmate? connectToSoulmateThem;
-    public static bool shouldSendWeight;
 
     private void OnEvent(EventData photonEvent)
     {
@@ -130,10 +94,10 @@ public partial class Plugin : BaseUnityPlugin
                 OnSharedDamageEvent(photonEvent);
                 break;
             case (int)SoulmateEventType.UPDATE_WEIGHT:
-                OnUpdateWeightEvent(photonEvent);
+                Weight.OnUpdateWeightEvent(photonEvent);
                 break;
             case (int)SoulmateEventType.CONNECT_TO_SOULMATE:
-                OnConnectToSoulmate(photonEvent);
+                ConnectSoulmate.OnConnectToSoulmate(photonEvent);
                 break;
             default:
                 return;
@@ -217,7 +181,7 @@ public partial class Plugin : BaseUnityPlugin
         }
     }
 
-    private static Character? GetSoulmate(int actor)
+    public static Character? GetSoulmate(int actor)
     {
         try
         {
@@ -274,13 +238,11 @@ public partial class Plugin : BaseUnityPlugin
             Log.LogInfo($"New soulmate: {globalSoulmate}");
         }
 
-        globalConnectedToSoulmate = ConnectedToSoulmateStatus();
+        ConnectSoulmate.OnNewSoulmate(soulmates.firstTime);
         if (soulmates.firstTime)
         {
             // Starting game. Clear data, do nothing else.
-            playerWeights.Clear();
-            connectToSoulmateMe = null;
-            connectToSoulmateThem = null;
+            Weight.Clear();
         }
         else
         {
@@ -298,60 +260,6 @@ public partial class Plugin : BaseUnityPlugin
         SoulmateTextPatch.SetSoulmateText("Soulmate: " + name, 10);
     }
 
-    private static void OnUpdateWeightEvent(EventData photonEvent)
-    {
-        Log.LogInfo("Received recalculate weight event");
-        object[] data = (object[])photonEvent.CustomData;
-        var weight = UpdateWeight.Deserialize((string)data[1]);
-        int senderActorNumber = photonEvent.Sender;
-
-        var oldWeights = playerWeights.GetValueOrDefault(senderActorNumber, new UpdateWeight());
-        playerWeights[senderActorNumber] = weight;
-
-        if (senderActorNumber == globalSoulmate)
-        {
-            if (Plugin.localCharIsReady())
-            {
-                // Will recalculate shared weight
-                Character.localCharacter.refs.afflictions.UpdateWeight();
-            }
-        }
-    }
-
-    // Called after UpdateWeight.
-    public static void RecalculateSharedWeight()
-    {
-        if (!localCharIsReady())
-        {
-            return;
-        }
-
-        Character localChar = Character.localCharacter;
-        var affs = localChar.refs.afflictions;
-
-        float thorns = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-        float weight = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
-
-        var soulmate = GetSoulmate(globalSoulmate);
-        if (soulmate == null)
-        {
-            return;
-        }
-        if (!soulmate.isLiv())
-        {
-            return; // Sanity check: don't share status of dead people
-        }
-        if (!playerWeights.ContainsKey(globalSoulmate))
-        {
-            return;
-        }
-        var soulmateWeights = playerWeights[globalSoulmate];
-        float finalWeight = (weight + soulmateWeights.weight) / 2;
-        float finalThorns = (thorns + soulmateWeights.thorns) / 2;
-
-        affs.SetStatus(CharacterAfflictions.STATUSTYPE.Weight, finalWeight);
-        affs.SetStatus(CharacterAfflictions.STATUSTYPE.Thorns, finalThorns);
-    }
     public static RecalculateSoulmatesEvent? RecalculateSoulmate(bool firstTime)
     {
         Log.LogInfo("Recalculating soulmate");
@@ -444,313 +352,5 @@ public partial class Plugin : BaseUnityPlugin
 
         // FIXME: make sure to ignore dead soulmates...
         return soulmates;
-    }
-    public static bool ConnectedToSoulmateStatus()
-    {
-        if (!localCharIsReady())
-        {
-            return false;
-        }
-        var soulmate = GetSoulmate(globalSoulmate);
-        if (soulmate == null)
-        {
-            return false;
-        }
-        if (!Character.localCharacter.isLiv())
-        {
-            return false;
-        }
-        if (!soulmate.isLiv())
-        {
-            return false;
-        }
-        return true;
-    }
-    public static void UpdateSoulmateStatus()
-    {
-        if (!localCharIsReady())
-        {
-            return;
-        }
-        bool connected_to_soulmate = ConnectedToSoulmateStatus();
-        if (!connected_to_soulmate && globalConnectedToSoulmate)
-        {
-            DisconnectFromSoulmate();
-        }
-        if (connected_to_soulmate && !globalConnectedToSoulmate)
-        {
-            DoConnectToSoulmate();
-        }
-        globalConnectedToSoulmate = connected_to_soulmate;
-        TryPerformConnectionToSoulmate();
-    }
-
-    private static void DisconnectFromSoulmate()
-    {
-        Log.LogInfo("Disconnecting from soulmate.");
-        if (!localCharIsReady())
-        {
-            return;
-        }
-
-        Character localChar = Character.localCharacter;
-        // Soulmate is dead or disconnected. Keep his burden.
-        // Only set our weight and thorns to local values.
-        localChar.refs.afflictions.UpdateWeight();
-    }
-    private static void DoConnectToSoulmate()
-    {
-        Log.LogInfo("Trying to connect to soulmate.");
-        if (!localCharIsReady())
-        {
-            return;
-        }
-
-        ConnectToSoulmate e;
-        e.from = Character.localCharacter.photonView.Owner.ActorNumber;
-        e.to = globalSoulmate;
-        e.status = new Dictionary<CharacterAfflictions.STATUSTYPE, float>();
-
-        foreach (CharacterAfflictions.STATUSTYPE s in Enum.GetValues(typeof(CharacterAfflictions.STATUSTYPE)))
-        {
-            if (s.isAbsolute() || !s.isShared())
-            {
-                continue;
-            }
-            e.status[s] = Character.localCharacter.refs.afflictions.GetCurrentStatus(s);
-        }
-        Events.SendConnectToSoulmateEvent(e);
-        connectToSoulmateMe = e;
-    }
-    private static void OnConnectToSoulmate(EventData photonEvent)
-    {
-        if (Character.localCharacter == null)
-        {
-            return;
-        }
-
-        object[] data = (object[])photonEvent.CustomData;
-        var c = ConnectToSoulmate.Deserialize((string)data[1]);
-        int senderActorNumber = photonEvent.Sender;
-        if (senderActorNumber != globalSoulmate)
-        {
-            return;
-        }
-        if (c.from != globalSoulmate)
-        {
-            return;
-        }
-        if (c.to != Character.localCharacter.photonView.Owner.ActorNumber)
-        {
-            return;
-        }
-        connectToSoulmateThem = c;
-    }
-    
-    private static void TryPerformConnectionToSoulmate()
-    {
-        if (!localCharIsReady())
-        {
-            return;
-        }
-
-        if (!connectToSoulmateThem.HasValue || !connectToSoulmateMe.HasValue)
-        {
-            return;
-        }
-
-        var me = connectToSoulmateMe.Value;
-        var them = connectToSoulmateThem.Value;
-
-        var me_id = Character.localCharacter.photonView.Owner.ActorNumber;
-        var them_id = globalSoulmate;
-        if (me_id != me.from || me_id != them.to || them_id != me.to || them_id != them.to)
-        {
-            return;
-        }
-
-        // All is checked. Share the burden.
-        connectToSoulmateMe = null;
-        connectToSoulmateThem = null;
-
-        var affs = Character.localCharacter.refs.afflictions;
-        foreach (var s in me.status.Keys)
-        {
-            if (s.isAbsolute() || !s.isShared())
-            {
-                continue;
-            }
-            if (!them.status.ContainsKey(s))
-            {
-                continue;
-            }
-            var sum = me.status[s] + them.status[s];
-            affs.SetStatus(s, sum);
-        }
-    }
-
-}
-
-[HarmonyPatch(typeof(CharacterAfflictions))]
-public class SharedDamagePatch
-{
-    internal static readonly HashSet<int> isReceivingSharedDamage = new();
-    private static HashSet<float> SoulmateValues = new();
-    public static void StatusPostfix(CharacterAfflictions __instance, SharedDamage _e)
-    {
-        try
-        {
-            if (!__instance.character.IsLocal) return;
-            if (__instance.character.data.dead || __instance.character.warping) return;
-            if (isReceivingSharedDamage.Contains(__instance.character.photonView.ViewID)) return;
-            var e = _e;
-            if (e.type.isAbsolute() || !e.type.isShared()) return;
-            Events.SendSharedDamageEvent(e);
-        }
-        catch (System.Exception ex)
-        {
-            Plugin.Log.LogError($"Error in SetStatusPostfix: {ex}");
-        }
-    }
-
-    [HarmonyPrefix]
-    [HarmonyPatch("SetStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float))]
-    public static void SetStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, out float __state)
-    {
-        __state = __instance.GetCurrentStatus(statusType);
-    }
-
-    [HarmonyPostfix]
-    [HarmonyPatch("SetStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float))]
-    public static void SetStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, float __state)
-    {
-        float current = __instance.GetCurrentStatus(statusType);
-        float diff = current - __state;
-        if (diff == 0.0f)
-        {
-            return;
-        }
-        var st = statusType;
-        if (st.isAbsolute())
-        {
-            return;
-        }
-
-        SharedDamage e;
-        e.type = statusType;
-        e.value = diff;
-        e.kind = SharedDamageKind.SET;
-        StatusPostfix(__instance, e);        
-    }
-
-    [HarmonyPostfix]
-    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
-    public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC)
-    {
-        SharedDamage e;
-        e.type = statusType;
-        e.value = amount;
-        e.kind = SharedDamageKind.ADD;
-        StatusPostfix(__instance, e);
-    }
-
-    [HarmonyPostfix]
-    [HarmonyPatch("SubtractStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
-    public static void SubtractStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC)
-    {
-        SharedDamage e;
-        e.type = statusType;
-        e.value = amount;
-        e.kind =  SharedDamageKind.SUBTRACT;
-        StatusPostfix(__instance, e);
-    }
-
-    [HarmonyPostfix]
-    [HarmonyPatch("UpdateWeight")]
-    public static void UpdateWeightPostfix(CharacterAfflictions __instance)
-    {
-        // After updating local weight, adjust for shared weight. Setup weight update if needed.
-        UpdateWeight w;
-
-        if (Character.localCharacter == null) return;
-
-        var aff = Character.localCharacter.refs.afflictions;
-        w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
-        w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-        if (Plugin.updateLocalWeight(w))
-        {
-            Plugin.shouldSendWeight = true;
-        }
-        Plugin.RecalculateSharedWeight();
-        return;
-    }
-}
-
-[HarmonyPatch(typeof(Character))]
-public static class RecalculateSoulmatesPatch
-{
-    [HarmonyPostfix]
-    [HarmonyPatch("StartPassedOutOnTheBeach")]
-    public static void StartPassedOutOnTheBeachPostfix(Character __instance)
-    {
-        Plugin.Log.LogInfo("Passed out on the beach function");
-        if (!__instance.IsLocal)
-        {
-            return;
-        }
-        var new_mates = Plugin.RecalculateSoulmate(true);
-        if (new_mates.HasValue)
-        {
-            Events.SendRecalculateSoulmateEvent(new_mates.Value);
-        }
-    }
-
-    [HarmonyPostfix]
-    [HarmonyPatch("Update")]
-    public static void UpdatePostfix(Character __instance)
-    {
-        if (!__instance.IsLocal)
-        {
-            return;
-        }
-        Plugin.UpdateSoulmateStatus();
-
-        if (Plugin.shouldSendWeight)
-        {
-            Plugin.shouldSendWeight = false;
-            var aff = __instance.refs.afflictions;
-            UpdateWeight w;
-
-            w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
-            w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-            Events.SendUpdateWeightEvent(w);
-        }
-    }
-}
-
-[HarmonyPatch(typeof(StaminaBar))]
-public static class RecalculateSoulmatesPatch2
-{
-    private static DateTime lastCall = DateTime.Now;
-
-    [HarmonyPostfix]
-    [HarmonyPatch("PlayMoraleBoost", typeof(int))]
-    public static void PlayMoraleBoostPostfix(StaminaBar __instance, int scoutCount)
-    {
-        Plugin.Log.LogInfo("Morale boost function");
-        var new_now = DateTime.Now;
-
-        if (new_now.Subtract(lastCall).TotalMinutes < 1)
-        {
-            // HACK: only trigger at most once a minute. For some reason this function gets called lots of times.
-            return;
-        }
-        lastCall = new_now;
-        
-        var new_mates = Plugin.RecalculateSoulmate(false);
-        if (new_mates.HasValue)
-        {
-            Events.SendRecalculateSoulmateEvent(new_mates.Value);
-        }
     }
 }
