@@ -32,6 +32,8 @@ public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedBonk { get; private set; } = null!;
+    internal static ConfigEntry<bool> EnableSharedExtraStaminaGain { get; private set; } = null!;
+    internal static ConfigEntry<bool> EnableSharedExtraStaminaUse { get; private set; } = null!;
 
     internal const byte SHARED_DAMAGE_EVENT_CODE = 198;
     private void Awake()
@@ -40,6 +42,14 @@ public partial class Plugin : BaseUnityPlugin
         Log.LogInfo($"Plugin {Name} version 0.1.10 is loaded!");
 
         EnableSharedBonk = Config.Bind("Shared Bonk", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
+        EnableSharedExtraStaminaGain = Config.Bind("Shared extra stamina gain",
+                                                   "EnableSharedExtraStaminaGain",
+                                                   true,
+                                                   "Soulmates share extra stamina gained");
+        EnableSharedExtraStaminaUse = Config.Bind("Shared extra stamina use",
+                                                  "EnableSharedExtraStaminaUse",
+                                                  true,
+                                                  "Soulmates use a single extra stamina pool");
 
         PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
 
@@ -101,6 +111,9 @@ public partial class Plugin : BaseUnityPlugin
                 break;
             case (int)SoulmateEventType.SHARED_BONK:
                 Bonk.OnSharedBonkEvent(photonEvent);
+                break;
+            case (int)SoulmateEventType.SHARED_EXTRA_STAMINA:
+                StamUtil.OnSharedExtraStaminaEvent(photonEvent);
                 break;
             default:
                 return;
@@ -301,6 +314,8 @@ public partial class Plugin : BaseUnityPlugin
             soulmates.config = previousSoulmates.Value.config;
         } else {
             soulmates.config.sharedBonk = EnableSharedBonk.Value;
+            soulmates.config.sharedExtraStaminaGain = EnableSharedExtraStaminaGain.Value;
+            soulmates.config.sharedExtraStaminaUse = EnableSharedExtraStaminaUse.Value;
         }
 
         // Fill in base values first.

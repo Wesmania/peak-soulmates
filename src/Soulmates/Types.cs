@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Steamworks;
 using UnityEngine;
 
 namespace Soulmates;
@@ -9,6 +10,8 @@ namespace Soulmates;
 public struct Config
 {
     public bool sharedBonk;
+    public bool sharedExtraStaminaGain;
+    public bool sharedExtraStaminaUse;
 }
 
 [Serializable]
@@ -102,6 +105,19 @@ public struct SharedBonk
         return JsonConvert.DeserializeObject<SharedBonk>(s);
     }
 }
+
+public struct SharedExtraStamina
+{
+    public float diff;
+    public string Serialize()
+    {
+        return JsonConvert.SerializeObject(this);
+    }
+    public static SharedExtraStamina Deserialize(string s)
+    {
+        return JsonConvert.DeserializeObject<SharedExtraStamina>(s);
+    }
+}
 enum SoulmateEventType
 {
     RECALCULATE = 0,
@@ -109,4 +125,5 @@ enum SoulmateEventType
     UPDATE_WEIGHT = 2,
     CONNECT_TO_SOULMATE = 3,
     SHARED_BONK = 4,
+    SHARED_EXTRA_STAMINA = 5,
 }
