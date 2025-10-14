@@ -79,8 +79,11 @@ public static class Weight
             return;
         }
         var soulmateWeights = playerWeights[Plugin.globalSoulmate];
+
         float finalWeight = (weight + soulmateWeights.weight) / 2;
         float finalThorns = (thorns + soulmateWeights.thorns) / 2;
+
+        Plugin.Log.LogInfo($"Final weight: {weight} + {soulmateWeights.weight} / 2 = {finalWeight}");
 
         affs.SetStatus(CharacterAfflictions.STATUSTYPE.Weight, finalWeight);
         affs.SetStatus(CharacterAfflictions.STATUSTYPE.Thorns, finalThorns);
