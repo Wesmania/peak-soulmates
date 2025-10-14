@@ -33,12 +33,10 @@ public static class Weight
     }
     public static void OnUpdateWeightEvent(EventData photonEvent)
     {
-        Plugin.Log.LogInfo("Received recalculate weight event");
         object[] data = (object[])photonEvent.CustomData;
         var weight = UpdateWeight.Deserialize((string)data[1]);
         int senderActorNumber = photonEvent.Sender;
 
-        var oldWeights = playerWeights.GetValueOrDefault(senderActorNumber, new UpdateWeight());
         playerWeights[senderActorNumber] = weight;
 
         if (senderActorNumber == Plugin.globalSoulmate)
@@ -76,6 +74,7 @@ public static class Weight
         }
         if (!playerWeights.ContainsKey(Plugin.globalSoulmate))
         {
+            Plugin.Log.LogInfo($"No player weight entry for soulmate {Plugin.globalSoulmate}");
             return;
         }
         var soulmateWeights = playerWeights[Plugin.globalSoulmate];

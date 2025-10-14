@@ -111,7 +111,6 @@ public partial class Plugin : BaseUnityPlugin
 
         if (!localCharIsReady())
         {
-            Log.LogInfo("Character is missing or dead, not applying shared damage");
             return;
         }
         Character localChar = Character.localCharacter;
@@ -119,7 +118,6 @@ public partial class Plugin : BaseUnityPlugin
         //if (localChar.photonView.Owner.ActorNumber == senderActorNumber) return;
         if (senderActorNumber != globalSoulmate)
         {
-            Log.LogInfo(String.Format("Sender {0} not matching soulmate {1}", senderActorNumber, globalSoulmate));
             return;
         }
 
@@ -274,7 +272,8 @@ public partial class Plugin : BaseUnityPlugin
         Log.LogInfo(String.Format("Character count: {0}", PhotonNetwork.PlayerList.Count()));
         var actors = PhotonNetwork.PlayerList.Select(x => x.ActorNumber).ToList();
         actors.Sort();
-        Log.LogInfo(String.Format("Characters: {0}", PhotonNetwork.PlayerList));
+        var all = String.Join(" ", PhotonNetwork.PlayerList.Select(x => x.ToString()));
+        Log.LogInfo(($"Characters: {all}"));
 
         // Lowest actor number is responsible for recalculating soulmates.
         if (actors.Count == 0 || actors[0] != PhotonNetwork.LocalPlayer.ActorNumber)

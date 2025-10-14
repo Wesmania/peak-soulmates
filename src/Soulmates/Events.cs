@@ -27,7 +27,6 @@ public static class Events
             Plugin.Log.LogInfo("$Tried to send a non-shared or absolute status type {statusType}");
             return;
         }
-        Plugin.Log.LogInfo($"Sending shared damage: {e.value} {e.type} {e.kind}");
         object[] content = [(int) SoulmateEventType.DAMAGE, e.Serialize()];
         RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
