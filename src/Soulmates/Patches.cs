@@ -141,24 +141,14 @@ public static class RecalculateSoulmatesPatch
     }
 }
 
-[HarmonyPatch(typeof(StaminaBar))]
+[HarmonyPatch(typeof(Campfire))]
 public static class RecalculateSoulmatesPatch2
 {
-    private static DateTime lastCall = DateTime.Now;
-
     [HarmonyPostfix]
-    [HarmonyPatch("PlayMoraleBoost", typeof(int))]
-    public static void PlayMoraleBoostPostfix(StaminaBar __instance, int scoutCount)
+    [HarmonyPatch("Light_Rpc")]
+    public static void LightPostfix(Campfire __instance)
     {
-        var new_now = DateTime.Now;
-        if (new_now.Subtract(lastCall).TotalMinutes < 1)
-        {
-            // HACK: only trigger at most once a minute. For some reason this function gets called lots of times.
-            return;
-        }
-        lastCall = new_now;
-        
-        Plugin.Log.LogInfo("Morale boost function");
+        Plugin.Log.LogInfo("Campfire function");
         var new_mates = Plugin.RecalculateSoulmate(false);
         if (new_mates.HasValue)
         {

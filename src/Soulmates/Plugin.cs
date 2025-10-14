@@ -37,7 +37,7 @@ public partial class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = Logger;
-        Log.LogInfo($"Plugin {Name} is loaded!");
+        Log.LogInfo($"Plugin {Name} version 0.1.9 is loaded!");
 
         EnablePoison = Config.Bind("Shared Status Effects", "EnablePoison", true, "Share Poison damage");
 
