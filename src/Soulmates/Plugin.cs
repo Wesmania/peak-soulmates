@@ -74,7 +74,7 @@ public partial class Plugin : BaseUnityPlugin
     }
 
     public static int globalSoulmate = -1;
-    private static RecalculateSoulmatesEvent? previousSoulmates;
+    public static RecalculateSoulmatesEvent? previousSoulmates;
 
     private void OnEvent(EventData photonEvent)
     {
@@ -296,6 +296,11 @@ public partial class Plugin : BaseUnityPlugin
         if (firstTime)
         {
             previousSoulmates = null;
+        }
+        if (previousSoulmates.HasValue) {
+            soulmates.config = previousSoulmates.Value.config;
+        } else {
+            soulmates.config.sharedBonk = EnableSharedBonk.Value;
         }
 
         // Fill in base values first.

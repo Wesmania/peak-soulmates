@@ -6,8 +6,15 @@ using UnityEngine;
 namespace Soulmates;
 
 [Serializable]
+public struct Config
+{
+    public bool sharedBonk;
+}
+
+[Serializable]
 public struct RecalculateSoulmatesEvent
 {
+    public Config config;
     public List<int> soulmates;
     public Dictionary<int, Dictionary<CharacterAfflictions.STATUSTYPE, float>> playerStatus;
     public bool firstTime;

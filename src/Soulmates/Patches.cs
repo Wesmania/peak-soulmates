@@ -158,25 +158,3 @@ public static class RecalculateSoulmatesPatch2
         }
     }
 }
-
-[HarmonyPatch(typeof(Bonkable))]
-public static class BonkPatch
-{
-    [HarmonyPostfix]
-    [HarmonyPatch("Bonk", (typeof(Collision)))]
-    public static bool BonkPrefix(Bonkable __instance, Collision coll)
-    {
-        // Same checks as original function.
-        Character componentInParent = coll.gameObject.GetComponentInParent<Character>();
-        if ((bool)componentInParent && Time.time > __instance.lastBonkedTime + __instance.bonkCooldown)
-        {
-            SharedBonk b;
-            b.ragdollTime = __instance.ragdollTime;
-            b.force = -coll.relativeVelocity.normalized * __instance.bonkForce;
-            b.contactPoint = coll.contacts[0].point;
-            b.range = __instance.bonkRange;
-            Events.SendSharedBonkEvent(b);
-        }
-        return false;
-    }
-}
