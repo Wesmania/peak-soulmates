@@ -75,86 +75,6 @@ public partial class Plugin : BaseUnityPlugin
             PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
         }
     }
-    [Serializable]
-    public struct RecalculateSoulmatesEvent
-    {
-        public List<int> soulmates;
-        public Dictionary<int, Dictionary<CharacterAfflictions.STATUSTYPE, float>> playerStatus;
-        public bool firstTime;
-
-        public string Serialize()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
-        public static RecalculateSoulmatesEvent Deserialize(string s)
-        {
-            return JsonConvert.DeserializeObject<RecalculateSoulmatesEvent>(s);
-        }
-    }
-
-    [Serializable]
-    public enum SharedDamageKind
-    {
-        ADD,
-        SUBTRACT,
-        SET
-    }
-
-    [Serializable]
-    public struct SharedDamage
-    {
-        public CharacterAfflictions.STATUSTYPE type;
-        public float value;
-        public SharedDamageKind kind;
-        public string Serialize()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
-        public static SharedDamage Deserialize(string s)
-        {
-            return JsonConvert.DeserializeObject<SharedDamage>(s);
-        }
-    }
-
-    [Serializable]
-    public struct UpdateWeight
-    {
-        public float weight = 0.0f;
-        public float thorns = 0.0f;
-
-        public UpdateWeight() { }
-        public string Serialize()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
-        public static UpdateWeight Deserialize(string s)
-        {
-            return JsonConvert.DeserializeObject<UpdateWeight>(s);
-        }
-    }
-    
-    [Serializable]
-    public struct ConnectToSoulmate
-    {
-        public int from;
-        public int to;
-        public Dictionary<CharacterAfflictions.STATUSTYPE, float> status;
-        public string Serialize()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
-        public static ConnectToSoulmate Deserialize(string s)
-        {
-            return JsonConvert.DeserializeObject<ConnectToSoulmate>(s);
-        }
-    }
-    enum SoulmateEventType
-    {
-        RECALCULATE = 0,
-        DAMAGE = 1,
-        UPDATE_WEIGHT = 2,
-        CONNECT_TO_SOULMATE = 3
-    }
 
     public static bool localCharIsReady()
     {
@@ -525,32 +445,6 @@ public partial class Plugin : BaseUnityPlugin
         // FIXME: make sure to ignore dead soulmates...
         return soulmates;
     }
-    public static void SendRecalculateSoulmateEvent(RecalculateSoulmatesEvent e)
-    {
-        Plugin.Log.LogInfo("Sending recalculate soulmate event...");
-        object[] content = [(int)SoulmateEventType.RECALCULATE, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
-    }
-    public static void SendSharedDamageEvent(SharedDamage e)
-    {
-        if (!e.type.isShared() || e.type.isAbsolute())
-        {
-            Log.LogInfo("$Tried to send a non-shared or absolute status type {statusType}");
-            return;
-        }
-        Log.LogInfo($"Sending shared damage: {e.value} {e.type} {e.kind}");
-        object[] content = [(int) SoulmateEventType.DAMAGE, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
-    }
-    public static void SendUpdateWeightEvent(UpdateWeight e)
-    {
-        Log.LogInfo($"Sending weight update: weight {e.weight}, thorns {e.thorns}");
-        object[] content = [(int)SoulmateEventType.UPDATE_WEIGHT, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
-    }
     public static bool ConnectedToSoulmateStatus()
     {
         if (!localCharIsReady())
@@ -625,7 +519,7 @@ public partial class Plugin : BaseUnityPlugin
             }
             e.status[s] = Character.localCharacter.refs.afflictions.GetCurrentStatus(s);
         }
-        SendConnectToSoulmateEvent(e);
+        Events.SendConnectToSoulmateEvent(e);
         connectToSoulmateMe = e;
     }
     private static void OnConnectToSoulmate(EventData photonEvent)
@@ -695,13 +589,6 @@ public partial class Plugin : BaseUnityPlugin
         }
     }
 
-    public static void SendConnectToSoulmateEvent(ConnectToSoulmate e)
-    {
-        Plugin.Log.LogInfo("Sending recalculate soulmate event...");
-        object[] content = [(int)SoulmateEventType.CONNECT_TO_SOULMATE, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
-    }
 }
 
 [HarmonyPatch(typeof(CharacterAfflictions))]
@@ -709,7 +596,7 @@ public class SharedDamagePatch
 {
     internal static readonly HashSet<int> isReceivingSharedDamage = new();
     private static HashSet<float> SoulmateValues = new();
-    public static void StatusPostfix(CharacterAfflictions __instance, Plugin.SharedDamage _e)
+    public static void StatusPostfix(CharacterAfflictions __instance, SharedDamage _e)
     {
         try
         {
@@ -718,7 +605,7 @@ public class SharedDamagePatch
             if (isReceivingSharedDamage.Contains(__instance.character.photonView.ViewID)) return;
             var e = _e;
             if (e.type.isAbsolute() || !e.type.isShared()) return;
-            Plugin.SendSharedDamageEvent(e);
+            Events.SendSharedDamageEvent(e);
         }
         catch (System.Exception ex)
         {
@@ -749,10 +636,10 @@ public class SharedDamagePatch
             return;
         }
 
-        Plugin.SharedDamage e;
+        SharedDamage e;
         e.type = statusType;
         e.value = diff;
-        e.kind = Plugin.SharedDamageKind.SET;
+        e.kind = SharedDamageKind.SET;
         StatusPostfix(__instance, e);        
     }
 
@@ -760,10 +647,10 @@ public class SharedDamagePatch
     [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
     public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC)
     {
-        Plugin.SharedDamage e;
+        SharedDamage e;
         e.type = statusType;
         e.value = amount;
-        e.kind = Plugin.SharedDamageKind.ADD;
+        e.kind = SharedDamageKind.ADD;
         StatusPostfix(__instance, e);
     }
 
@@ -771,10 +658,10 @@ public class SharedDamagePatch
     [HarmonyPatch("SubtractStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
     public static void SubtractStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC)
     {
-        Plugin.SharedDamage e;
+        SharedDamage e;
         e.type = statusType;
         e.value = amount;
-        e.kind = Plugin.SharedDamageKind.SUBTRACT;
+        e.kind =  SharedDamageKind.SUBTRACT;
         StatusPostfix(__instance, e);
     }
 
@@ -783,7 +670,7 @@ public class SharedDamagePatch
     public static void UpdateWeightPostfix(CharacterAfflictions __instance)
     {
         // After updating local weight, adjust for shared weight. Setup weight update if needed.
-        Plugin.UpdateWeight w;
+        UpdateWeight w;
 
         if (Character.localCharacter == null) return;
 
@@ -814,7 +701,7 @@ public static class RecalculateSoulmatesPatch
         var new_mates = Plugin.RecalculateSoulmate(true);
         if (new_mates.HasValue)
         {
-            Plugin.SendRecalculateSoulmateEvent(new_mates.Value);
+            Events.SendRecalculateSoulmateEvent(new_mates.Value);
         }
     }
 
@@ -832,11 +719,11 @@ public static class RecalculateSoulmatesPatch
         {
             Plugin.shouldSendWeight = false;
             var aff = __instance.refs.afflictions;
-            Plugin.UpdateWeight w;
+            UpdateWeight w;
 
             w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
             w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-            Plugin.SendUpdateWeightEvent(w);
+            Events.SendUpdateWeightEvent(w);
         }
     }
 }
@@ -844,93 +731,26 @@ public static class RecalculateSoulmatesPatch
 [HarmonyPatch(typeof(StaminaBar))]
 public static class RecalculateSoulmatesPatch2
 {
+    private static DateTime lastCall = DateTime.Now;
+
     [HarmonyPostfix]
     [HarmonyPatch("PlayMoraleBoost", typeof(int))]
     public static void PlayMoraleBoostPostfix(StaminaBar __instance, int scoutCount)
     {
         Plugin.Log.LogInfo("Morale boost function");
+        var new_now = DateTime.Now;
+
+        if (new_now.Subtract(lastCall).TotalMinutes < 1)
+        {
+            // HACK: only trigger at most once a minute. For some reason this function gets called lots of times.
+            return;
+        }
+        lastCall = new_now;
+        
         var new_mates = Plugin.RecalculateSoulmate(false);
         if (new_mates.HasValue)
         {
-            Plugin.SendRecalculateSoulmateEvent(new_mates.Value);
-        }
-    }
-}
-
-public class TextSetter : MonoBehaviour
-{
-    public void SetSoulmateText(string text, float delay)
-    {
-        Plugin.Log.LogInfo("In SetSoulmateText");
-        StartCoroutine(TextCoroutine());
-        IEnumerator TextCoroutine()
-        {
-            Plugin.Log.LogInfo("In SetSoulmateText coroutine");
-            yield return new WaitForSeconds(delay);
-            if (SoulmateTextPatch.text != null)
-            {
-                Plugin.Log.LogInfo("In SetSoulmateText coroutine, set text");
-                SoulmateTextPatch.text.text = text;
-            }
-            yield return new WaitForSeconds(10f);
-            if (SoulmateTextPatch.text != null)
-            {
-                Plugin.Log.LogInfo("In SetSoulmateText coroutine, reset text");
-                SoulmateTextPatch.text.text = "";
-            }
-            Plugin.Log.LogInfo("In SetSoulmateText coroutine end");
-        }
-    }
-}
-
-[HarmonyPatch(typeof(GUIManager))]
-public static class SoulmateTextPatch
-{
-    public static Canvas? SoulmatePrompt;
-    public static TextMeshProUGUI? text;
-    public static TMP_FontAsset? darumaDropOneFont;
-    public static TextSetter? text_setter;
-
-    [HarmonyPostfix]
-    [HarmonyPatch("Start")]
-    public static void StartPostfix(GUIManager __instance)
-    {
-        var transform = __instance.transform;
-        var textChatCanvasObj = new GameObject("SoulmatePrompt");
-        textChatCanvasObj.transform.SetParent(transform, false);
-        SoulmatePrompt = textChatCanvasObj.AddComponent<Canvas>();
-        SoulmatePrompt.renderMode = RenderMode.ScreenSpaceCamera;
-
-        var textChatCanvasScaler = SoulmatePrompt.gameObject.GetComponent<CanvasScaler>() ?? SoulmatePrompt.gameObject.AddComponent<CanvasScaler>();
-        textChatCanvasScaler.referencePixelsPerUnit = 100;
-        textChatCanvasScaler.matchWidthOrHeight = 1;
-        textChatCanvasScaler.referenceResolution = new Vector2(1920, 1080);
-        textChatCanvasScaler.scaleFactor = 1;
-        textChatCanvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-        textChatCanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-
-        var textChatObj = new GameObject("TextChat");
-        textChatObj.transform.SetParent(SoulmatePrompt.transform, false);
-        text = textChatObj.AddComponent<TextMeshProUGUI>();
-        text_setter = textChatObj.AddComponent<TextSetter>();
-        try
-        {
-            darumaDropOneFont = GUIManager.instance?.itemPromptDrop?.font;
-        }
-        catch { }
-        text.text = "";
-        if (darumaDropOneFont != null)
-        {
-            text.font = darumaDropOneFont;
-        }
-        text.horizontalAlignment = HorizontalAlignmentOptions.Center;
-    }
-
-    public static void SetSoulmateText(string text, float delay)
-    {
-        if (text_setter != null)
-        {
-            text_setter.SetSoulmateText(text, delay);
+            Events.SendRecalculateSoulmateEvent(new_mates.Value);
         }
     }
 }
