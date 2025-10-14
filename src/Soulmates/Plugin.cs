@@ -20,6 +20,7 @@ using Sirenix.Utilities;
 using UnityEngine.Rendering;
 using AsmResolver.Patching;
 using Newtonsoft.Json;
+using UnityEngine.SocialPlatforms;
 
 namespace Soulmates;
 
@@ -165,12 +166,31 @@ public partial class Plugin : BaseUnityPlugin
         return true;
     }
 
+    // Returns true is weight has to be propagated.
+    public static bool updateLocalWeight(UpdateWeight w)
+    {
+        Character localChar = Character.localCharacter;
+        if (localChar == null)
+        {
+            return false;
+        }
+        int id = localChar.photonView.Owner.ActorNumber;
+        if (!playerWeights.ContainsKey(id))
+        {
+            return true;
+        }
+        var old = playerWeights[id];
+        playerWeights[id] = w;
+        return old.weight != w.weight || old.thorns != w.thorns;
+    }
+
     private static int globalSoulmate = -1;
     private static bool globalConnectedToSoulmate = false;
     private static Dictionary<int, UpdateWeight> playerWeights = new Dictionary<int, UpdateWeight>();
     private static RecalculateSoulmatesEvent? previousSoulmates;
     private static ConnectToSoulmate? connectToSoulmateMe;
     private static ConnectToSoulmate? connectToSoulmateThem;
+    public static bool shouldSendWeight;
 
     private void OnEvent(EventData photonEvent)
     {
@@ -298,7 +318,7 @@ public partial class Plugin : BaseUnityPlugin
 
         if (!e.playerStatus.ContainsKey(my_number))
         {
-            UpdateWeightSafe();
+            localChar.refs.afflictions.UpdateWeight();
             return;
         }
         var stat = e.playerStatus[my_number];
@@ -312,7 +332,7 @@ public partial class Plugin : BaseUnityPlugin
             localChar.refs.afflictions.SetStatus(s, stat[s]);
         }
 
-        UpdateWeightSafe();
+        localChar.refs.afflictions.UpdateWeight();
     }
     private static void OnRecalculateSoulmateEvent(EventData photonEvent)
     {
@@ -390,7 +410,7 @@ public partial class Plugin : BaseUnityPlugin
         var affs = localChar.refs.afflictions;
 
         float thorns = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-        float weight = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
+        float weight = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
 
         var soulmate = GetSoulmate(globalSoulmate);
         if (soulmate == null)
@@ -408,6 +428,9 @@ public partial class Plugin : BaseUnityPlugin
         var soulmateWeights = playerWeights[globalSoulmate];
         float finalWeight = (weight + soulmateWeights.weight) / 2;
         float finalThorns = (thorns + soulmateWeights.thorns) / 2;
+
+        affs.SetStatus(CharacterAfflictions.STATUSTYPE.Weight, finalWeight);
+        affs.SetStatus(CharacterAfflictions.STATUSTYPE.Thorns, finalThorns);
     }
     public static RecalculateSoulmatesEvent? RecalculateSoulmate(bool firstTime)
     {
@@ -525,7 +548,7 @@ public partial class Plugin : BaseUnityPlugin
     {
         Log.LogInfo($"Sending weight update: weight {e.weight}, thorns {e.thorns}");
         object[] content = [(int)SoulmateEventType.UPDATE_WEIGHT, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
+        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
     public static bool ConnectedToSoulmateStatus()
@@ -568,24 +591,6 @@ public partial class Plugin : BaseUnityPlugin
         TryPerformConnectionToSoulmate();
     }
 
-    // Update weight, including shared weight, without sending a weight message.
-    public static void UpdateWeightSafe()
-    {
-        if (!localCharIsReady())
-        {
-            return;
-        }
-        Character localChar = Character.localCharacter;
-        SharedDamagePatch.isReceivingSharedDamage.Add(localChar.photonView.ViewID);
-        try
-        {
-            localChar.refs.afflictions.UpdateWeight();
-        }
-        finally
-        {
-            SharedDamagePatch.isReceivingSharedDamage.Remove(localChar.photonView.ViewID);
-        }
-    }
     private static void DisconnectFromSoulmate()
     {
         Log.LogInfo("Disconnecting from soulmate.");
@@ -597,7 +602,7 @@ public partial class Plugin : BaseUnityPlugin
         Character localChar = Character.localCharacter;
         // Soulmate is dead or disconnected. Keep his burden.
         // Only set our weight and thorns to local values.
-        UpdateWeightSafe();
+        localChar.refs.afflictions.UpdateWeight();
     }
     private static void DoConnectToSoulmate()
     {
@@ -777,16 +782,18 @@ public class SharedDamagePatch
     [HarmonyPatch("UpdateWeight")]
     public static void UpdateWeightPostfix(CharacterAfflictions __instance)
     {
-        // After updating weight, adjust for shared weight. Send weight update if we're not called by the mod.
+        // After updating local weight, adjust for shared weight. Setup weight update if needed.
         Plugin.UpdateWeight w;
 
-        if (!Plugin.localCharIsReady()) return;
-        if (isReceivingSharedDamage.Contains(__instance.character.photonView.ViewID)) return;
+        if (Character.localCharacter == null) return;
 
         var aff = Character.localCharacter.refs.afflictions;
         w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
         w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-        Plugin.SendUpdateWeightEvent(w);
+        if (Plugin.updateLocalWeight(w))
+        {
+            Plugin.shouldSendWeight = true;
+        }
         Plugin.RecalculateSharedWeight();
         return;
     }
@@ -820,6 +827,17 @@ public static class RecalculateSoulmatesPatch
             return;
         }
         Plugin.UpdateSoulmateStatus();
+
+        if (Plugin.shouldSendWeight)
+        {
+            Plugin.shouldSendWeight = false;
+            var aff = __instance.refs.afflictions;
+            Plugin.UpdateWeight w;
+
+            w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
+            w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
+            Plugin.SendUpdateWeightEvent(w);
+        }
     }
 }
 
