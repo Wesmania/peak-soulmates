@@ -145,3 +145,5 @@ public static class StaminaPatch
         SendStaminaDiff(__instance, __state);
     }
 }
+
+// AddAffliction for lollipops and energy drinks
