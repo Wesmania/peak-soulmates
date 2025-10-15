@@ -8,10 +8,19 @@ THIS MOD IS UNDER DEVELOPMENT. It doesn't crash at start, but I don't know yet w
 
 ## Features
 
-* Sharing damage! (if it's not buggy)
-* Sharing hunder and weight! (if it's not buggy)
-* Sharing healing! (if it's not buggy)
-* New soulmates chosen at every biome! (if it's not buggy)
+Implemented:
+
+* To be tested.
+
+Implemented, but maybe buggy:
+
+* Sharing damage!
+* Sharing hunger and weight!
+* Sharing healing!
+* New soulmates chosen at every biome!
+* Sharing bonks! (configurable)
+* Sharing extra stamina gain! (configurable)
+* Sharing extra stamina USE! (configurable)
 
 ## Planned features
 
@@ -23,6 +32,11 @@ THIS MOD IS UNDER DEVELOPMENT. It doesn't crash at start, but I don't know yet w
 ## Installation
 
 1. Extract the mod folder into `BepInEx/plugins`
+
+## Configuration
+
+1. Run the mod once.
+2. Open and edit the file `BepInEx/config/com.github.Wesmania.Soulmates.cfg` in PEAK's directory.
 
 ## Multiplayer Compatibility
 
