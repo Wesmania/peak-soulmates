@@ -8,7 +8,7 @@ repository = "https://thunderstore.io"
 namespace = "Wesmania"
 name = "Soulmates"
 description = "Matches people into pairs so that each pair shares all damage. Based on the \"Shared damage\" mod."
-websiteUrl = "https://github.com/Wermsnia/peak-soulmates"
+websiteUrl = "https://github.com/Wesmania/peak-soulmates"
 containsNsfwContent = false
 
 [package.dependencies]
