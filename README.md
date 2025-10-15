@@ -4,7 +4,7 @@ A multiplayer mod that matches players into pairs, where each player in a pair s
 
 ## WARNING WARNING WARNING
 
-THIS MOD IS UNDER DEVELOPMENT. It doesn't crash at start, but I don't know yet what it does. Have fun.
+THIS MOD IS UNDER DEVELOPMENT. I played a few games with it and it seems to more-or-less work, but don't be surprised by bugs.
 
 ## Features
 
@@ -27,7 +27,6 @@ Implemented, but maybe buggy:
 * Logo that's not a half-assed "shared damage" ripoff.
 * Better way to indicate who's your soulmate.
 * Fix bugs.
-* Configuration options: what damage is shared, damage multipliers, etc.
 
 ## Installation
 
