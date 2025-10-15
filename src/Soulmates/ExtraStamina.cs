@@ -82,14 +82,14 @@ public static class StaminaPatch
 
     [HarmonyPrefix]
     [HarmonyPatch("UseStamina", typeof(float), typeof(bool))]
-    public static void UseStaminaPrefix(Character __instance, float amount, bool useBonusStamina, out float __state)
+    public static void UseStaminaPrefix(Character __instance, float usage, bool useBonusStamina, out float __state)
     {
         __state = __instance.data.extraStamina;
     }
 
     [HarmonyPostfix]
     [HarmonyPatch("UseStamina", typeof(float), typeof(bool))]
-    public static void UseStaminaSuffix(Character __instance, float amount, bool useBonusStamina, float __state)
+    public static void UseStaminaSuffix(Character __instance, float usage, bool useBonusStamina, float __state)
     {
         if (!__instance.IsLocal) return;
         SendStaminaDiff(__instance, __instance.data.extraStamina - __state);
@@ -97,14 +97,14 @@ public static class StaminaPatch
 
     [HarmonyPrefix]
     [HarmonyPatch("SetExtraStamina", typeof(float))]
-    public static void SetExtraStaminaPrefix(Character __instance, float amount, out float __state)
+    public static void SetExtraStaminaPrefix(Character __instance, float amt, out float __state)
     {
         __state = __instance.data.extraStamina;
     }
 
     [HarmonyPostfix]
     [HarmonyPatch("SetExtraStamina", typeof(float))]
-    public static void SetExtraStaminaSuffix(Character __instance, float amount, float __state)
+    public static void SetExtraStaminaSuffix(Character __instance, float amt, float __state)
     {
         if (!__instance.IsLocal) return;
         float diff = __instance.data.extraStamina - __state;
@@ -123,22 +123,22 @@ public static class StaminaPatch
 
     [HarmonyPrefix]
     [HarmonyPatch("AddExtraStamina", typeof(float))]
-    public static void AddExtraStaminaPrefix(Character __instance, ref float amount, out float __state)
+    public static void AddExtraStaminaPrefix(Character __instance, ref float add, out float __state)
     {
-        __state = amount;
+        __state = add;
 
         if (!__instance.IsLocal) return;
         // Careful! If we added too much, stamina will clamp.
         // Halve the value here to prevent that.
-        if (amount > 0.0f && StamUtil.onlySharesGain())
+        if (add > 0.0f && StamUtil.onlySharesGain())
         {
-            amount /= 2.0f;
+            add /= 2.0f;
         }
     }
 
     [HarmonyPostfix]
     [HarmonyPatch("AddExtraStamina", typeof(float))]
-    public static void AddExtraStaminaSuffix(Character __instance, float amount, float __state)
+    public static void AddExtraStaminaSuffix(Character __instance, float add, float __state)
     {
         if (!__instance.IsLocal) return;
         // Pass the original diff so that our clamp won't affect the other side.
