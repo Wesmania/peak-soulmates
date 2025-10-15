@@ -34,6 +34,8 @@ public partial class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> EnableSharedBonk { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedExtraStaminaGain { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedExtraStaminaUse { get; private set; } = null!;
+    internal static ConfigEntry<bool> EnableSharedLolli { get; private set; } = null!;
+    internal static ConfigEntry<bool> EnableSharedEnergol { get; private set; } = null!;
 
     internal const byte SHARED_DAMAGE_EVENT_CODE = 198;
     private void Awake()
@@ -50,7 +52,14 @@ public partial class Plugin : BaseUnityPlugin
                                                   "EnableSharedExtraStaminaUse",
                                                   true,
                                                   "Soulmates use a single extra stamina pool");
-
+        EnableSharedLolli = Config.Bind("Shared lollipops",
+                                        "EnableSharedLolli",
+                                        true,
+                                        "Soulmates share lollipop boost");
+        EnableSharedEnergol = Config.Bind("Shared energy drinks",
+                                        "EnableSharedEnergol",
+                                        true,
+                                        "Soulmates share energy drink boost");
         PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
 
         Harmony harmony = new("com.github.Wesmania.Soulmates");
@@ -114,6 +123,9 @@ public partial class Plugin : BaseUnityPlugin
                 break;
             case (int)SoulmateEventType.SHARED_EXTRA_STAMINA:
                 StamUtil.OnSharedExtraStaminaEvent(photonEvent);
+                break;
+            case (int)SoulmateEventType.SHARED_AFFLICTION:
+                AfflictionUtil.onSharedAfflictionEvent(photonEvent);
                 break;
             default:
                 return;
@@ -316,6 +328,8 @@ public partial class Plugin : BaseUnityPlugin
             soulmates.config.sharedBonk = EnableSharedBonk.Value;
             soulmates.config.sharedExtraStaminaGain = EnableSharedExtraStaminaGain.Value;
             soulmates.config.sharedExtraStaminaUse = EnableSharedExtraStaminaUse.Value;
+            soulmates.config.sharedLolli = EnableSharedLolli.Value;
+            soulmates.config.sharedEnergol = EnableSharedEnergol.Value;
         }
 
         // Fill in base values first.

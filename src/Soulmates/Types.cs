@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Steamworks;
+using Peak.Afflictions;
 using UnityEngine;
 
 namespace Soulmates;
@@ -12,6 +13,8 @@ public struct Config
     public bool sharedBonk;
     public bool sharedExtraStaminaGain;
     public bool sharedExtraStaminaUse;
+    public bool sharedLolli;
+    public bool sharedEnergol;
 }
 
 [Serializable]
@@ -118,6 +121,22 @@ public struct SharedExtraStamina
         return JsonConvert.DeserializeObject<SharedExtraStamina>(s);
     }
 }
+
+public struct SharedAffliction
+{
+    public Affliction.AfflictionType type;
+    public float totalTime;
+    public string Serialize()
+    {
+        return JsonConvert.SerializeObject(this);
+    }
+    public static SharedAffliction Deserialize(string s)
+    {
+        return JsonConvert.DeserializeObject<SharedAffliction>(s);
+    }
+} 
+    
+
 enum SoulmateEventType
 {
     RECALCULATE = 0,
@@ -126,4 +145,5 @@ enum SoulmateEventType
     CONNECT_TO_SOULMATE = 3,
     SHARED_BONK = 4,
     SHARED_EXTRA_STAMINA = 5,
+    SHARED_AFFLICTION = 6,
 }

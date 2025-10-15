@@ -6,19 +6,21 @@ namespace Soulmates;
 
 public static class Events
 {
+    private static void SendEvent<T>(SoulmateEventType eventType, string e, ReceiverGroup who) where T : struct
+    {
+        object[] content = [(int)eventType, e];
+        RaiseEventOptions raiseEventOptions = new() { Receivers = who };
+        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+    }
     public static void SendConnectToSoulmateEvent(ConnectToSoulmate e)
     {
         Plugin.Log.LogInfo("Sending connect to soulmate event...");
-        object[] content = [(int)SoulmateEventType.CONNECT_TO_SOULMATE, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+        SendEvent<ConnectToSoulmate>(SoulmateEventType.CONNECT_TO_SOULMATE, e.Serialize(), ReceiverGroup.All);
     }
     public static void SendRecalculateSoulmateEvent(RecalculateSoulmatesEvent e)
     {
         Plugin.Log.LogInfo("Sending recalculate soulmate event...");
-        object[] content = [(int)SoulmateEventType.RECALCULATE, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+        SendEvent<RecalculateSoulmatesEvent>(SoulmateEventType.RECALCULATE, e.Serialize(), ReceiverGroup.All);
     }
     public static void SendSharedDamageEvent(SharedDamage e)
     {
@@ -27,29 +29,25 @@ public static class Events
             Plugin.Log.LogInfo("$Tried to send a non-shared or absolute status type {statusType}");
             return;
         }
-        object[] content = [(int) SoulmateEventType.DAMAGE, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+        SendEvent<SharedDamage>(SoulmateEventType.DAMAGE, e.Serialize(), ReceiverGroup.All);
     }
     public static void SendUpdateWeightEvent(UpdateWeight e)
     {
         Plugin.Log.LogInfo($"Sending weight update: weight {e.weight}, thorns {e.thorns}");
-        object[] content = [(int)SoulmateEventType.UPDATE_WEIGHT, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+        SendEvent<UpdateWeight>(SoulmateEventType.UPDATE_WEIGHT, e.Serialize(), ReceiverGroup.Others);
     }
 
     public static void SendSharedBonkEvent(SharedBonk e)
     {
         Plugin.Log.LogInfo("Sending bonk");
-        object[] content = [(int)SoulmateEventType.SHARED_BONK, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+        SendEvent<SharedBonk>(SoulmateEventType.SHARED_BONK, e.Serialize(), ReceiverGroup.Others);
     }
     public static void SendSharedExtraStaminaEvent(SharedExtraStamina e)
     {
-        object[] content = [(int)SoulmateEventType.SHARED_EXTRA_STAMINA, e.Serialize()];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+        SendEvent<SharedExtraStamina>(SoulmateEventType.SHARED_EXTRA_STAMINA, e.Serialize(), ReceiverGroup.Others);
+    }
+    public static void SendSharedAfflictionEvent(SharedAffliction e)
+    {
+        SendEvent<SharedAffliction>(SoulmateEventType.SHARED_AFFLICTION, e.Serialize(), ReceiverGroup.Others);
     }
 }
