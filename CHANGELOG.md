@@ -18,3 +18,7 @@ First kind of working version
 
 * Fixed picking new soulmates at campfire
 * Less spammy and more useful logs
+
+## V0.1.12
+
+* Experimental features: sharing bonks, extra stamina, lolliopos and energy drinks

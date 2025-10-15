@@ -21,6 +21,7 @@ Implemented, but maybe buggy:
 * Sharing bonks! (configurable)
 * Sharing extra stamina gain! (configurable)
 * Sharing extra stamina USE! (configurable)
+* Shared lollipops and energy drinks! (configurable)
 
 ## Planned features
 

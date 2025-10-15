@@ -41,7 +41,7 @@ public partial class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = Logger;
-        Log.LogInfo($"Plugin {Name} version 0.1.12 is loaded!");
+        Log.LogInfo($"Plugin {Name} version 0.1.13 is loaded!");
 
         EnableSharedBonk = Config.Bind("Shared Bonk", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
         EnableSharedExtraStaminaGain = Config.Bind("Shared extra stamina gain",
