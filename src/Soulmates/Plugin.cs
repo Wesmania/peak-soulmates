@@ -31,6 +31,7 @@ public static class Extensions
 public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log { get; private set; } = null!;
+    internal static ConfigEntry<bool> Enabled { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedBonk { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedExtraStaminaGain { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedExtraStaminaUse { get; private set; } = null!;
@@ -43,6 +44,7 @@ public partial class Plugin : BaseUnityPlugin
         Log = Logger;
         Log.LogInfo($"Plugin {Name} version 0.1.13 is loaded!");
 
+        Enabled = Config.Bind("Enabled", "Enabled", true, "Enable/disable the mod with this");
         EnableSharedBonk = Config.Bind("Shared Bonk", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
         EnableSharedExtraStaminaGain = Config.Bind("Shared extra stamina gain",
                                                    "EnableSharedExtraStaminaGain",
@@ -60,6 +62,11 @@ public partial class Plugin : BaseUnityPlugin
                                         "EnableSharedEnergol",
                                         true,
                                         "Soulmates share energy drink boost");
+        if (!Enabled.Value)
+        {
+            Log.LogInfo("Soulmates disabled");
+            return;
+        }
         PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
 
         Harmony harmony = new("com.github.Wesmania.Soulmates");
@@ -76,6 +83,8 @@ public partial class Plugin : BaseUnityPlugin
 
     private void OnDestroy()
     {
+        if (!Enabled.Value) return;
+
         if (PhotonNetwork.NetworkingClient != null)
         {
             PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
