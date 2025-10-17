@@ -11,6 +11,7 @@ namespace Soulmates;
 public struct Config
 {
     public bool sharedBonk;
+    public bool sharedSlip;
     public bool sharedExtraStaminaGain;
     public bool sharedExtraStaminaUse;
     public bool sharedLolli;

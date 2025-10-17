@@ -33,12 +33,14 @@ public partial class Plugin : BaseUnityPlugin
     internal static ManualLogSource Log { get; private set; } = null!;
     internal static ConfigEntry<bool> Enabled { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedBonk { get; private set; } = null!;
+    internal static ConfigEntry<bool> EnableSharedSlip { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedExtraStaminaGain { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedExtraStaminaUse { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedLolli { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedEnergol { get; private set; } = null!;
 
     internal const byte SHARED_DAMAGE_EVENT_CODE = 198;
+
     private void Awake()
     {
         Log = Logger;
@@ -46,6 +48,7 @@ public partial class Plugin : BaseUnityPlugin
 
         Enabled = Config.Bind("Enabled", "Enabled", true, "Enable/disable the mod with this");
         EnableSharedBonk = Config.Bind("Shared Bonk", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
+        EnableSharedSlip = Config.Bind("Shared Slip", "EnableSharedSlip", true, "Slipping on something makes the soulmate slip too");
         EnableSharedExtraStaminaGain = Config.Bind("Shared extra stamina gain",
                                                    "EnableSharedExtraStaminaGain",
                                                    true,
@@ -253,6 +256,7 @@ public partial class Plugin : BaseUnityPlugin
 
         localChar.refs.afflictions.UpdateWeight();
     }
+
     private static void OnRecalculateSoulmateEvent(EventData photonEvent)
     {
         Log.LogInfo("Received recalculate soulmate event");
@@ -335,6 +339,7 @@ public partial class Plugin : BaseUnityPlugin
             soulmates.config = previousSoulmates.Value.config;
         } else {
             soulmates.config.sharedBonk = EnableSharedBonk.Value;
+            soulmates.config.sharedSlip = EnableSharedSlip.Value;
             soulmates.config.sharedExtraStaminaGain = EnableSharedExtraStaminaGain.Value;
             soulmates.config.sharedExtraStaminaUse = EnableSharedExtraStaminaUse.Value;
             soulmates.config.sharedLolli = EnableSharedLolli.Value;
