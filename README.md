@@ -2,17 +2,9 @@
 
 A multiplayer mod that matches players into pairs, where each player in a pair shares damage of the other. Based on the "shared damage" mod.
 
-## WARNING WARNING WARNING
-
-THIS MOD IS UNDER DEVELOPMENT. I played a few games with it and it seems to more-or-less work, but don't be surprised by bugs.
-
 ## Features
 
 Implemented:
-
-* To be tested.
-
-Implemented, but maybe buggy:
 
 * Sharing damage!
 * Sharing hunger and weight!
@@ -23,10 +15,15 @@ Implemented, but maybe buggy:
 * Sharing extra stamina USE! (configurable)
 * Shared lollipops and energy drinks! (configurable)
 
+Implemented, but maybe buggy:
+
+* None.
+
 ## Planned features
 
 * Logo that's not a half-assed "shared damage" ripoff.
 * Better way to indicate who's your soulmate.
+* Shared slipping.
 * Fix bugs.
 
 ## Installation

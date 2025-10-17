@@ -42,7 +42,7 @@ public partial class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = Logger;
-        Log.LogInfo($"Plugin {Name} version 0.1.14 is loaded!");
+        Log.LogInfo($"Plugin {Name} version 0.1.15 is loaded!");
 
         Enabled = Config.Bind("Enabled", "Enabled", true, "Enable/disable the mod with this");
         EnableSharedBonk = Config.Bind("Shared Bonk", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
