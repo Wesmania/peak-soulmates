@@ -93,11 +93,26 @@ public struct ConnectToSoulmate
 }
 
 [Serializable]
+public struct V3(Vector3 v)
+{
+    public float x = v.x;
+    public float y = v.y;
+    public float z = v.z;
+
+    public Vector3 toVector3()
+    {
+        return new Vector3(x, y, z);
+    }
+}
+
+[Serializable]
 public struct SharedBonk
 {
+    // Bonk() is called by ranadom players, usually host. So remember the victim and send it to everyone.
+    public int victim;
     public float ragdollTime;
-    public Vector3 force;
-    public Vector3 contactPoint;
+    public V3 force;
+    public V3 contactPoint;
     public float range;
     public string Serialize()
     {

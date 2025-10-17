@@ -47,8 +47,8 @@ public static class Events
 
     public static void SendSharedBonkEvent(SharedBonk e)
     {
-        Plugin.Log.LogInfo("Sending bonk");
-        SendToSoulmate<SharedBonk>(SoulmateEventType.SHARED_BONK, e.Serialize());
+        Plugin.Log.LogInfo($"Sending bonk {e.victim} {e.ragdollTime} {e.force} {e.contactPoint} {e.range}");
+        SendEvent<SharedBonk>(SoulmateEventType.SHARED_BONK, e.Serialize(), ReceiverGroup.All);
     }
     public static void SendSharedExtraStaminaEvent(SharedExtraStamina e)
     {

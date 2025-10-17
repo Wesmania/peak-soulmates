@@ -18,13 +18,13 @@ public static class Bonk
         }
 
         Character localChar = Character.localCharacter;
-        if (Plugin.globalSoulmate != senderActorNumber)
+        if (Plugin.globalSoulmate != bonk.victim)
         {
             return;
         }
 
         localChar.Fall(bonk.ragdollTime);
-        localChar.AddForceAtPosition(bonk.force, bonk.contactPoint, bonk.range);
+        localChar.AddForceAtPosition(bonk.force.toVector3(), bonk.contactPoint.toVector3(), bonk.range);
     }
 }
 
@@ -47,9 +47,10 @@ public static class BonkPatch
 
             SharedBonk b;
             b.ragdollTime = __instance.ragdollTime;
-            b.force = -coll.relativeVelocity.normalized * __instance.bonkForce;
-            b.contactPoint = coll.contacts[0].point;
+            b.force = new V3(-coll.relativeVelocity.normalized * __instance.bonkForce);
+            b.contactPoint = new V3(coll.contacts[0].point);
             b.range = __instance.bonkRange;
+            b.victim = componentInParent.photonView.Owner.ActorNumber;
             Events.SendSharedBonkEvent(b);
         }
     }
