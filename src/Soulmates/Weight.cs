@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ExitGames.Client.Photon;
+using HarmonyLib;
 
 namespace Soulmates;
 
@@ -31,6 +32,22 @@ public static class Weight
         playerWeights[id] = w;
         return old.weight != w.weight || old.thorns != w.thorns;
     }
+
+    public static UpdateWeight? getLocalWeight()
+    {
+        Character localChar = Character.localCharacter;
+        if (localChar == null)
+        {
+            return null;
+        }
+        int id = localChar.photonView.Owner.ActorNumber;
+        if (!playerWeights.ContainsKey(id))
+        {
+            return null;
+        }
+        return playerWeights[id];
+    }
+
     public static void OnUpdateWeightEvent(EventData photonEvent)
     {
         object[] data = (object[])photonEvent.CustomData;
@@ -91,5 +108,40 @@ public static class Weight
         bool o = shouldSendWeight;
         shouldSendWeight = false;
         return o;
+    }
+
+    public static void MaybeSendWeight()
+    {
+        if (Weight.ShouldSendWeight())
+        {
+            var w = getLocalWeight();
+            if (!w.HasValue) return;
+
+            Events.SendUpdateWeightEvent(w.Value);
+        }
+    }
+}
+
+[HarmonyPatch(typeof(CharacterAfflictions))]
+public class WeightPatch1
+{
+    [HarmonyPostfix]
+    [HarmonyPatch("UpdateWeight")]
+    public static void UpdateWeightPostfix(CharacterAfflictions __instance)
+    {
+        // After updating local weight, adjust for shared weight. Setup weight update if needed.
+        UpdateWeight w;
+
+        if (Character.localCharacter == null) return;
+
+        var aff = Character.localCharacter.refs.afflictions;
+        w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
+        w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
+        if (Weight.updateLocalWeight(w))
+        {
+            Weight.shouldSendWeight = true;
+        }
+        Weight.RecalculateSharedWeight();
+        return;
     }
 }

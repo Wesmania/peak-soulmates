@@ -79,26 +79,6 @@ public class SharedDamagePatch
         e.kind =  SharedDamageKind.SUBTRACT;
         StatusPostfix(__instance, e);
     }
-
-    [HarmonyPostfix]
-    [HarmonyPatch("UpdateWeight")]
-    public static void UpdateWeightPostfix(CharacterAfflictions __instance)
-    {
-        // After updating local weight, adjust for shared weight. Setup weight update if needed.
-        UpdateWeight w;
-
-        if (Character.localCharacter == null) return;
-
-        var aff = Character.localCharacter.refs.afflictions;
-        w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
-        w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-        if (Weight.updateLocalWeight(w))
-        {
-            Weight.shouldSendWeight = true;
-        }
-        Weight.RecalculateSharedWeight();
-        return;
-    }
 }
 
 [HarmonyPatch(typeof(Character))]
@@ -129,16 +109,7 @@ public static class RecalculateSoulmatesPatch
             return;
         }
         ConnectSoulmate.UpdateSoulmateStatus();
-
-        if (Weight.ShouldSendWeight())
-        {
-            var aff = __instance.refs.afflictions;
-            UpdateWeight w;
-
-            w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
-            w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-            Events.SendUpdateWeightEvent(w);
-        }
+        Weight.MaybeSendWeight();
     }
 }
 
