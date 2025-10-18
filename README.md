@@ -13,6 +13,7 @@ Implemented:
 * Sharing extra stamina gain! (configurable)
 * Sharing extra stamina USE! (configurable)
 * Shared lollipops and energy drinks! (configurable)
+* Shared slipping! (configurable)
 
 Implemented, but buggy:
 
@@ -26,7 +27,6 @@ Bugs:
 
 * Logo that's not a half-assed "shared damage" ripoff.
 * Better way to indicate who's your soulmate.
-* Shared slipping.
 * Fix bugs.
 
 ## Installation
