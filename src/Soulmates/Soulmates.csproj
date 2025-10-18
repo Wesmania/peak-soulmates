@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <AssemblyName>com.github.Wesmania.Soulmates</AssemblyName>
         <AssemblyTitle>Soulmates</AssemblyTitle>
-        <Version>0.2.0</Version>
+        <Version>0.2.1</Version>
     </PropertyGroup>
 
     <ItemGroup>

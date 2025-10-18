@@ -35,3 +35,7 @@ First kind of working version
 * Don't try to synchronize status when soulmate schange. Too complex, and
   probably unintuitive for players.
 * Use Photon's inMasterClient to decide who should recalculate soulmates.
+
+## V0.2.1
+
+* Probably fix incorrect weights/thorns calculations.
