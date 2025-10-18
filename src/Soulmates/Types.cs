@@ -23,7 +23,6 @@ public struct RecalculateSoulmatesEvent
 {
     public Config config;
     public List<int> soulmates;
-    public Dictionary<int, Dictionary<CharacterAfflictions.STATUSTYPE, float>> playerStatus;
     public bool firstTime;
 
     public string Serialize()
@@ -78,22 +77,6 @@ public struct UpdateWeight
 }
 
 [Serializable]
-public struct ConnectToSoulmate
-{
-    public int from;
-    public int to;
-    public Dictionary<CharacterAfflictions.STATUSTYPE, float> status;
-    public string Serialize()
-    {
-        return JsonConvert.SerializeObject(this);
-    }
-    public static ConnectToSoulmate Deserialize(string s)
-    {
-        return JsonConvert.DeserializeObject<ConnectToSoulmate>(s);
-    }
-}
-
-[Serializable]
 public struct V3(Vector3 v)
 {
     public float x = v.x;
@@ -109,7 +92,7 @@ public struct V3(Vector3 v)
 [Serializable]
 public struct SharedBonk
 {
-    // Bonk() is called by ranadom players, usually host. So remember the victim and send it to everyone.
+    // Bonk() is called by random players, usually host. So remember the victim and send it to everyone.
     public int victim;
     public float ragdollTime;
     public V3 force;
@@ -158,7 +141,6 @@ enum SoulmateEventType
     RECALCULATE = 0,
     DAMAGE = 1,
     UPDATE_WEIGHT = 2,
-    CONNECT_TO_SOULMATE = 3,
     SHARED_BONK = 4,
     SHARED_EXTRA_STAMINA = 5,
     SHARED_AFFLICTION = 6,

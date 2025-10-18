@@ -141,9 +141,6 @@ public partial class Plugin : BaseUnityPlugin
             case (int)SoulmateEventType.UPDATE_WEIGHT:
                 Weight.OnUpdateWeightEvent(photonEvent);
                 break;
-            case (int)SoulmateEventType.CONNECT_TO_SOULMATE:
-                ConnectSoulmate.OnConnectToSoulmate(photonEvent);
-                break;
             case (int)SoulmateEventType.SHARED_BONK:
                 Bonk.OnSharedBonkEvent(photonEvent);
                 break;
@@ -252,22 +249,6 @@ public partial class Plugin : BaseUnityPlugin
         Character localChar = Character.localCharacter;
         var my_number = localChar.photonView.Owner.ActorNumber;
 
-        if (!e.playerStatus.ContainsKey(my_number))
-        {
-            localChar.refs.afflictions.UpdateWeight();
-            return;
-        }
-        var stat = e.playerStatus[my_number];
-
-        foreach (var s in stat.Keys)
-        {
-            if (s.isAbsolute() || !s.isShared())
-            {
-                continue;
-            }
-            localChar.refs.afflictions.SetStatus(s, stat[s]);
-        }
-
         localChar.refs.afflictions.UpdateWeight();
     }
 
@@ -291,7 +272,6 @@ public partial class Plugin : BaseUnityPlugin
             Log.LogInfo($"New soulmate: {globalSoulmate}");
         }
 
-        ConnectSoulmate.OnNewSoulmate(soulmates.firstTime);
         if (soulmates.firstTime)
         {
             // Starting game. Clear data, do nothing else.
@@ -337,7 +317,6 @@ public partial class Plugin : BaseUnityPlugin
 
         soulmates.soulmates = actors;
         soulmates.firstTime = firstTime;
-        soulmates.playerStatus = new Dictionary<int, Dictionary<CharacterAfflictions.STATUSTYPE, float>>();
 
         if (firstTime)
         {
@@ -355,67 +334,6 @@ public partial class Plugin : BaseUnityPlugin
             soulmates.config.sharedExtraStaminaUse = EnableSharedExtraStaminaUse.Value;
             soulmates.config.sharedLolli = EnableSharedLolli.Value;
             soulmates.config.sharedEnergol = EnableSharedEnergol.Value;
-        }
-
-        // Fill in base values first.
-        foreach (var c in Character.AllCharacters)
-        {
-            var d = new Dictionary<CharacterAfflictions.STATUSTYPE, float>();
-            soulmates.playerStatus[c.photonView.Owner.ActorNumber] = d;
-            foreach (CharacterAfflictions.STATUSTYPE s in Enum.GetValues(typeof(CharacterAfflictions.STATUSTYPE)))
-            {
-                if (s.isAbsolute() || !s.isShared())
-                {
-                    continue;
-                }
-                d[s] = c.refs.afflictions.GetCurrentStatus(s);
-            }
-        }
-
-        if (previousSoulmates.HasValue)
-        {
-            // Average the values between soulmates and split their share.
-            var s = previousSoulmates.Value;
-            for (int i = 0; i + 1 < s.soulmates.Count; i += 2)
-            {
-                var s1 = s.soulmates[i];
-                var s2 = s.soulmates[i + 1];
-                var ps = soulmates.playerStatus;
-                if (!ps.ContainsKey(s1) || !ps.ContainsKey(s2))
-                {
-                    continue;
-                }
-                var s1d = ps[s1];
-                var s2d = ps[s2];
-                foreach (var st in s1d.Keys)
-                {
-                    var avg = (s1d[st] + s2d[st]) / 2;
-                    var share = avg / 2;
-                    s1d[st] = share;
-                    s2d[st] = share;
-                }
-            }
-        }
-
-
-        // Combine the burdens of new soulmates.
-        for (int i = 0; i + 1 < soulmates.soulmates.Count; i += 2)
-        {
-            var s1 = soulmates.soulmates[i];
-            var s2 = soulmates.soulmates[i + 1];
-            var ps = soulmates.playerStatus;
-            if (!ps.ContainsKey(s1) || !ps.ContainsKey(s2))
-            {
-                continue;
-            }
-            var s1d = ps[s1];
-            var s2d = ps[s2];
-            foreach (var st in s1d.Keys)
-            {
-                var sum = s1d[st] + s2d[st];
-                s1d[st] = sum;
-                s2d[st] = sum;
-            }
         }
 
         // FIXME: make sure to ignore dead soulmates...

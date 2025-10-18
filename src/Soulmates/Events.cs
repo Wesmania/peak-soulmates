@@ -20,11 +20,6 @@ public static class Events
         RaiseEventOptions raiseEventOptions = new() { TargetActors = [Plugin.soulmateNumber()] };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
-    public static void SendConnectToSoulmateEvent(ConnectToSoulmate e)
-    {
-        Plugin.Log.LogInfo("Sending connect to soulmate event...");
-        SendToSoulmate<ConnectToSoulmate>(SoulmateEventType.CONNECT_TO_SOULMATE, e.Serialize());
-    }
     public static void SendRecalculateSoulmateEvent(RecalculateSoulmatesEvent e)
     {
         Plugin.Log.LogInfo("Sending recalculate soulmate event...");
