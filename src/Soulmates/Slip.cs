@@ -20,7 +20,7 @@ public static class SlipPatch1
         if (!(__instance.counter < 3f))
         {
             Character componentInParent = other.GetComponentInParent<Character>();
-            if ((bool)componentInParent && componentInParent.photonView.Owner.ActorNumber == Plugin.globalSoulmate)
+            if ((bool)componentInParent && componentInParent.photonView.Owner.ActorNumber == Plugin.soulmateNumber())
             {
                 // A bit awkward since now the timeout is shared between both players. Oh well.
                 __instance.counter = 0f;
@@ -43,7 +43,7 @@ public static class SlipPatch2
         }
 
         // Repeat function's logic, but for soulmate.
-        var soulmate = Plugin.GetSoulmate(Plugin.globalSoulmate);
+        var soulmate = Plugin.GetSoulmate(Plugin.soulmateNumber());
         if (soulmate == null) return;
 
         if (__instance.item.itemState == ItemState.Ground)

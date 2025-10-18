@@ -137,7 +137,6 @@ public static class RecalculateSoulmatesPatch
 
             w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
             w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-            Plugin.Log.LogInfo($"Sending new weight {w.weight} {w.thorns}");
             Events.SendUpdateWeightEvent(w);
         }
     }

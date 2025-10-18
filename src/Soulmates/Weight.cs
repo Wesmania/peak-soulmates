@@ -39,7 +39,7 @@ public static class Weight
 
         playerWeights[senderActorNumber] = weight;
 
-        if (senderActorNumber == Plugin.globalSoulmate)
+        if (senderActorNumber == Plugin.soulmateNumber())
         {
             if (Plugin.localCharIsReady())
             {
@@ -63,7 +63,7 @@ public static class Weight
         float thorns = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
         float weight = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
 
-        var soulmate = Plugin.GetSoulmate(Plugin.globalSoulmate);
+        var soulmate = Plugin.GetSoulmate(Plugin.soulmateNumber());
         if (soulmate == null)
         {
             return;
@@ -72,17 +72,15 @@ public static class Weight
         {
             return; // Sanity check: don't share status of dead people
         }
-        if (!playerWeights.ContainsKey(Plugin.globalSoulmate))
+        if (!playerWeights.ContainsKey(Plugin.soulmateNumber()))
         {
             Plugin.Log.LogInfo($"No player weight entry for soulmate {Plugin.globalSoulmate}");
             return;
         }
-        var soulmateWeights = playerWeights[Plugin.globalSoulmate];
+        var soulmateWeights = playerWeights[Plugin.soulmateNumber()];
 
         float finalWeight = (weight + soulmateWeights.weight) / 2;
         float finalThorns = (thorns + soulmateWeights.thorns) / 2;
-
-        Plugin.Log.LogInfo($"Final weight: {weight} + {soulmateWeights.weight} / 2 = {finalWeight}");
 
         affs.SetStatus(CharacterAfflictions.STATUSTYPE.Weight, finalWeight);
         affs.SetStatus(CharacterAfflictions.STATUSTYPE.Thorns, finalThorns);

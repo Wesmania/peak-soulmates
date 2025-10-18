@@ -30,7 +30,7 @@ static class StamUtil
         }
 
         Character localChar = Character.localCharacter;
-        if (Plugin.globalSoulmate != senderActorNumber)
+        if (Plugin.soulmateNumber() != senderActorNumber)
         {
             return;
         }

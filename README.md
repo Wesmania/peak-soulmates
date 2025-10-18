@@ -9,15 +9,18 @@ Implemented:
 * Sharing damage!
 * Sharing hunger and weight!
 * Sharing healing!
-* New soulmates chosen at every biome!
 * Sharing bonks! (configurable)
 * Sharing extra stamina gain! (configurable)
 * Sharing extra stamina USE! (configurable)
 * Shared lollipops and energy drinks! (configurable)
 
-Implemented, but maybe buggy:
+Implemented, but buggy:
 
-* None.
+* New soulmates chosen at every biome! (Bug: does not trigger at campfires)
+
+Bugs:
+
+* Sometimes players might become immune to cold after eating scorchberries?
 
 ## Planned features
 

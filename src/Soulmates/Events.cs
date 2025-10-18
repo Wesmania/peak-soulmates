@@ -14,10 +14,10 @@ public static class Events
     }
     private static void SendToSoulmate<T>(SoulmateEventType eventType, string e) where T : struct
     {
-        if (Plugin.globalSoulmate == -1) return;
+        if (Plugin.globalSoulmate == "") return;
 
         object[] content = [(int)eventType, e];
-        RaiseEventOptions raiseEventOptions = new() { TargetActors = [Plugin.globalSoulmate] };
+        RaiseEventOptions raiseEventOptions = new() { TargetActors = [Plugin.soulmateNumber()] };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
     public static void SendConnectToSoulmateEvent(ConnectToSoulmate e)
@@ -41,7 +41,6 @@ public static class Events
     }
     public static void SendUpdateWeightEvent(UpdateWeight e)
     {
-        Plugin.Log.LogInfo($"Sending weight update: weight {e.weight}, thorns {e.thorns}");
         SendEvent<UpdateWeight>(SoulmateEventType.UPDATE_WEIGHT, e.Serialize(), ReceiverGroup.Others);
     }
 

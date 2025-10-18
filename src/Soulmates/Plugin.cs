@@ -8,6 +8,7 @@ using ExitGames.Client.Photon;
 using System.Linq;
 using pworld.Scripts.Extensions;
 using System;
+using pworld.Scripts;
 
 namespace Soulmates;
 
@@ -104,7 +105,20 @@ public partial class Plugin : BaseUnityPlugin
         return true;
     }
 
-    public static int globalSoulmate = -1;
+    public static string globalSoulmate = "";
+    public static int soulmateNumber()
+    {
+        if (globalSoulmate == "") return -1;
+        var s = PhotonNetwork.PlayerList.ToList().Find(p => p.NickName == globalSoulmate);
+        if (s == null) return -1;
+        return s.ActorNumber;
+    }
+    public static string indexToNick(int idx)
+    {
+        var s = PhotonNetwork.PlayerList.ToList().Find(p => p.ActorNumber == idx);
+        if (s == null) return "";
+        return s.NickName;
+    }
     public static RecalculateSoulmatesEvent? previousSoulmates;
 
     private void OnEvent(EventData photonEvent)
@@ -156,7 +170,7 @@ public partial class Plugin : BaseUnityPlugin
         Character localChar = Character.localCharacter;
         // Sanity check
         //if (localChar.photonView.Owner.ActorNumber == senderActorNumber) return;
-        if (senderActorNumber != globalSoulmate)
+        if (senderActorNumber != soulmateNumber())
         {
             return;
         }
@@ -197,25 +211,25 @@ public partial class Plugin : BaseUnityPlugin
         }
     }
 
-    private static int findSoulmate(List<int> soulmates)
+    private static string findSoulmate(List<int> soulmates)
     {
         var my_actor = PhotonNetwork.LocalPlayer.ActorNumber;
         var pos = soulmates.FindIndex(x => x == my_actor);
         if (pos == -1)
         {
             Log.LogInfo($"Did not find myself ({my_actor}) on soulmate list!");
-            return -1;
+            return "";
         }
         Log.LogInfo($"Found my index: {pos}");
         var soulmate_index = pos % 2 == 0 ? pos + 1 : pos - 1;
         if (soulmate_index >= soulmates.Count)
         {
             Log.LogInfo(String.Format("I am last player on the list and have no soulmate"));
-            return -1;
+            return "";
         }
         else
         {
-            return soulmates[soulmate_index];
+            return indexToNick(soulmates[soulmate_index]);
         }
     }
 
@@ -268,7 +282,7 @@ public partial class Plugin : BaseUnityPlugin
         var oldSoulmateIndex = globalSoulmate;
         globalSoulmate = findSoulmate(soulmates.soulmates);
 
-        if (globalSoulmate == -1)
+        if (globalSoulmate == "")
         {
             Log.LogInfo("No soulmate");
         }
@@ -288,21 +302,15 @@ public partial class Plugin : BaseUnityPlugin
             ConnectToNewSoulmate(soulmates);
         }
 
-        if (globalSoulmate == -1)
+        if (globalSoulmate == "")
         {
             SoulmateTextPatch.SetSoulmateText("Soulmate: None", 10);
             return;
         }
-
-        try
+        else
         {
-            var soulmate = PhotonNetwork.PlayerList.ToList().Find(c => c.ActorNumber == globalSoulmate);
-            var name = soulmate.NickName;
-            Log.LogInfo(String.Format("My soulmate is {0} (actor {1})", name, globalSoulmate));
-            SoulmateTextPatch.SetSoulmateText("Soulmate: " + name, 10);
-        } catch (ArgumentNullException)
-        {
-            Log.LogError(String.Format("Uh-oh, did not find soulmate with actor ID {0}!", globalSoulmate));
+            Log.LogInfo(String.Format("My soulmate is {0})", globalSoulmate));
+            SoulmateTextPatch.SetSoulmateText("Soulmate: " + globalSoulmate, 10);
         }
     }
 
@@ -335,9 +343,12 @@ public partial class Plugin : BaseUnityPlugin
         {
             previousSoulmates = null;
         }
-        if (previousSoulmates.HasValue) {
+        if (previousSoulmates.HasValue)
+        {
             soulmates.config = previousSoulmates.Value.config;
-        } else {
+        }
+        else
+        {
             soulmates.config.sharedBonk = EnableSharedBonk.Value;
             soulmates.config.sharedSlip = EnableSharedSlip.Value;
             soulmates.config.sharedExtraStaminaGain = EnableSharedExtraStaminaGain.Value;

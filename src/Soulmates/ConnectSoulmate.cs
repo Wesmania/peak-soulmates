@@ -17,7 +17,7 @@ public static class ConnectSoulmate
         {
             return false;
         }
-        var soulmate = Plugin.GetSoulmate(Plugin.globalSoulmate);
+        var soulmate = Plugin.GetSoulmate(Plugin.soulmateNumber());
         if (soulmate == null)
         {
             return false;
@@ -74,8 +74,8 @@ public static class ConnectSoulmate
 
         ConnectToSoulmate e;
         e.from = Character.localCharacter.photonView.Owner.ActorNumber;
-        e.to = Plugin.globalSoulmate;
-        if (Plugin.globalSoulmate == -1)
+        e.to = Plugin.soulmateNumber();
+        if (Plugin.globalSoulmate == "")
         {
             return;
         }
@@ -102,11 +102,11 @@ public static class ConnectSoulmate
         object[] data = (object[])photonEvent.CustomData;
         var c = ConnectToSoulmate.Deserialize((string)data[1]);
         int senderActorNumber = photonEvent.Sender;
-        if (senderActorNumber != Plugin.globalSoulmate)
+        if (senderActorNumber != Plugin.soulmateNumber())
         {
             return;
         }
-        if (c.from != Plugin.globalSoulmate)
+        if (c.from != Plugin.soulmateNumber())
         {
             return;
         }
@@ -133,7 +133,7 @@ public static class ConnectSoulmate
         var them = connectToSoulmateThem.Value;
 
         var me_id = Character.localCharacter.photonView.Owner.ActorNumber;
-        var them_id = Plugin.globalSoulmate;
+        var them_id = Plugin.soulmateNumber();
         if (me_id != me.from || me_id != them.to || them_id != me.to || them_id != them.to)
         {
             return;
