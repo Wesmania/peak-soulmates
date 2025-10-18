@@ -304,13 +304,11 @@ public partial class Plugin : BaseUnityPlugin
         var all = String.Join(" ", PhotonNetwork.PlayerList.Select(x => x.ToString()));
         Log.LogInfo(($"Characters: {all}"));
 
-        // Lowest actor number is responsible for recalculating soulmates.
-        if (actors.Count == 0 || actors[0] != PhotonNetwork.LocalPlayer.ActorNumber)
+        if (!PhotonNetwork.IsMasterClient)
         {
             return null;
         }
-
-        Log.LogInfo("I am the lowest numbered player, preparing new soulmate list");
+        Log.LogInfo("I am master client, preparing new soulmate list");
 
         actors.Shuffle();
         RecalculateSoulmatesEvent soulmates;
