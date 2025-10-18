@@ -235,7 +235,9 @@ public partial class Plugin : BaseUnityPlugin
         try
         {
             return Character.AllCharacters.Find(c => c.photonView.Owner.ActorNumber == actor);
-        } catch(Exception) {
+        }
+        catch (Exception)
+        {
             return null;
         }
     }
