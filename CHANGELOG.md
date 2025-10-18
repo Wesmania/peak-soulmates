@@ -29,3 +29,9 @@ First kind of working version
 * Test status:
   * Recalculating soulmates at campfire doesn't work sometimes.
   * Receiving heat stops you from getting cold at night?
+
+## V0.2.0
+
+* Don't try to synchronize status when soulmate schange. Too complex, and
+  probably unintuitive for players.
+* Use Photon's inMasterClient to decide who should recalculate soulmates.
