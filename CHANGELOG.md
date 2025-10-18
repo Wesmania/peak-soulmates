@@ -22,3 +22,10 @@ First kind of working version
 ## V0.1.12
 
 * Experimental features: sharing bonks, extra stamina, lolliopos and energy drinks
+
+## V0.1.17
+
+* Sharing slipping.
+* Test status:
+  * Recalculating soulmates at campfire doesn't work sometimes.
+  * Receiving heat stops you from getting cold at night?
