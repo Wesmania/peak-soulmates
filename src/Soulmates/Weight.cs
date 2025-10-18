@@ -80,7 +80,7 @@ public static class Weight
         var soulmateWeights = playerWeights[Plugin.soulmateNumber()];
 
         float finalWeight = (weight + soulmateWeights.weight) / 2;
-        float finalThorns = (thorns + soulmateWeights.thorns) / 2;
+        float finalThorns = thorns + soulmateWeights.thorns;    // Thorns are cumulative
 
         affs.SetStatus(CharacterAfflictions.STATUSTYPE.Weight, finalWeight);
         affs.SetStatus(CharacterAfflictions.STATUSTYPE.Thorns, finalThorns);
