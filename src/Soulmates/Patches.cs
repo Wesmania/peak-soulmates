@@ -10,6 +10,7 @@ namespace Soulmates;
 public class SharedDamagePatch
 {
     internal static readonly HashSet<int> isReceivingSharedDamage = new();
+    internal static readonly Dictionary<int, int> isRecursiveStatusCall = new();
     private static HashSet<float> SoulmateValues = new();
     public static void StatusPostfix(CharacterAfflictions __instance, SharedDamage _e)
     {
@@ -58,26 +59,56 @@ public class SharedDamagePatch
         StatusPostfix(__instance, e);        
     }
 
+    [HarmonyPrefix]
+    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
+    public static void AddStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC)
+    {
+        if (!isRecursiveStatusCall.ContainsKey(__instance.character.photonView.ViewID))
+        {
+            isRecursiveStatusCall[__instance.character.photonView.ViewID] = 0;
+        }
+        isRecursiveStatusCall[__instance.character.photonView.ViewID]++;
+    }
+
     [HarmonyPostfix]
     [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
     public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC)
     {
-        SharedDamage e;
-        e.type = statusType;
-        e.value = amount;
-        e.kind = SharedDamageKind.ADD;
-        StatusPostfix(__instance, e);
+        isRecursiveStatusCall[__instance.character.photonView.ViewID]--;
+        if (isRecursiveStatusCall[__instance.character.photonView.ViewID] == 0)
+        {
+            SharedDamage e;
+            e.type = statusType;
+            e.value = amount;
+            e.kind = SharedDamageKind.ADD;
+            StatusPostfix(__instance, e);
+        }
+    }
+
+    [HarmonyPrefix]
+    [HarmonyPatch("SubtractStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
+    public static void SubtractStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC)
+    {
+        if (!isRecursiveStatusCall.ContainsKey(__instance.character.photonView.ViewID))
+        {
+            isRecursiveStatusCall[__instance.character.photonView.ViewID] = 0;
+        }
+        isRecursiveStatusCall[__instance.character.photonView.ViewID]++;
     }
 
     [HarmonyPostfix]
     [HarmonyPatch("SubtractStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
     public static void SubtractStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC)
     {
-        SharedDamage e;
-        e.type = statusType;
-        e.value = amount;
-        e.kind =  SharedDamageKind.SUBTRACT;
-        StatusPostfix(__instance, e);
+        isRecursiveStatusCall[__instance.character.photonView.ViewID]--;
+        if (isRecursiveStatusCall[__instance.character.photonView.ViewID] == 0)
+        {
+            SharedDamage e;
+            e.type = statusType;
+            e.value = amount;
+            e.kind = SharedDamageKind.SUBTRACT;
+            StatusPostfix(__instance, e);
+        }
     }
 }
 
