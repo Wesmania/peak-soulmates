@@ -168,8 +168,6 @@ public partial class Plugin : BaseUnityPlugin
             return;
         }
         Character localChar = Character.localCharacter;
-        // Sanity check
-        //if (localChar.photonView.Owner.ActorNumber == senderActorNumber) return;
         if (senderActorNumber != soulmateNumber())
         {
             return;
