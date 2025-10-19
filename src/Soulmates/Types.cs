@@ -133,8 +133,19 @@ public struct SharedAffliction
     {
         return JsonConvert.DeserializeObject<SharedAffliction>(s);
     }
-} 
-    
+}
+
+public struct WhoIsMySoulmate
+{
+    public string Serialize()
+    {
+        return JsonConvert.SerializeObject(this);
+    }
+    public static WhoIsMySoulmate Deserialize(string s)
+    {
+        return JsonConvert.DeserializeObject<WhoIsMySoulmate>(s);
+    }
+}
 
 enum SoulmateEventType
 {
@@ -144,4 +155,5 @@ enum SoulmateEventType
     SHARED_BONK = 4,
     SHARED_EXTRA_STAMINA = 5,
     SHARED_AFFLICTION = 6,
+    WHO_IS_MY_SOULMATE = 7,
 }

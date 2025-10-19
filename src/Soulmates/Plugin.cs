@@ -150,6 +150,9 @@ public partial class Plugin : BaseUnityPlugin
             case (int)SoulmateEventType.SHARED_AFFLICTION:
                 AfflictionUtil.onSharedAfflictionEvent(photonEvent);
                 break;
+            case (int)SoulmateEventType.WHO_IS_MY_SOULMATE:
+                TellMeMySoulmate.OnWhoIsMySoulmate(photonEvent);
+                break;
             default:
                 return;
         }
