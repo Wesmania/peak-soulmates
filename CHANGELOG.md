@@ -44,3 +44,7 @@ First kind of working version
 
 * Soulmate color is now green.
 * Fixed add/subtract messages sent on recursive calls. Probably doesn't fix the heat bug.
+
+## V0.2.3
+
+* Fixed the heat bug. Problem was with arguments to postfix being modified by the original function.

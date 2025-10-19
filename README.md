@@ -16,10 +16,9 @@ Implemented:
 * Shared slipping! (configurable)
 * New soulmates chosen at every biome!
 
-Bugs:
+Implemented, but maybe buggy:
 
-* Players become immune to cold and have untreatable heat applied from things like scorchberries and geysers.
-* Players that disconnect and rejoin no longer know who their soulmate is.
+* Players that disconnect and rejoin should re-discover what their soulmate is from other players.
 
 ## Planned features
 
