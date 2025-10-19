@@ -48,3 +48,9 @@ First kind of working version
 ## V0.2.3
 
 * Fixed the heat bug. Problem was with arguments to postfix being modified by the original function.
+
+## V0.2.4
+
+* Bigger soulbound groups.
+* Configurable soulbound effect strength.
+* Unretardate configuration file.
