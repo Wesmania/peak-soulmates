@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
@@ -12,17 +14,17 @@ public static class Events
         RaiseEventOptions raiseEventOptions = new() { Receivers = who };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
-    private static void SendEventTo(SoulmateEventType eventType, string e, int target)
+    private static void SendEventTo(SoulmateEventType eventType, string e, int[] targets)
     {
         object[] content = [(int)eventType, e];
-        RaiseEventOptions raiseEventOptions = new() { TargetActors = [target] };
+        RaiseEventOptions raiseEventOptions = new() { TargetActors = targets };
         PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
     }
-    private static void SendToSoulmate(SoulmateEventType eventType, string e)
+    private static void SendToSoulmates(SoulmateEventType eventType, string e)
     {
-        if (Plugin.globalSoulmate == "") return;
+        if (Soulmates.NoSoulmates()) return;
 
-        SendEventTo(eventType, e, Plugin.soulmateNumber());
+        SendEventTo(eventType, e, Soulmates.SoulmateNumbers().ToArray());
     }
     public static void SendRecalculateSoulmateEvent(RecalculateSoulmatesEvent e)
     {
@@ -36,7 +38,7 @@ public static class Events
             Plugin.Log.LogInfo("$Tried to send a non-shared or absolute status type {statusType}");
             return;
         }
-        SendToSoulmate(SoulmateEventType.DAMAGE, e.Serialize());
+        SendToSoulmates(SoulmateEventType.DAMAGE, e.Serialize());
     }
     public static void SendUpdateWeightEvent(UpdateWeight e)
     {
@@ -50,19 +52,19 @@ public static class Events
     }
     public static void SendSharedExtraStaminaEvent(SharedExtraStamina e)
     {
-        SendToSoulmate(SoulmateEventType.SHARED_EXTRA_STAMINA, e.Serialize());
+        SendToSoulmates(SoulmateEventType.SHARED_EXTRA_STAMINA, e.Serialize());
     }
     public static void SendSharedAfflictionEvent(SharedAffliction e)
     {
-        SendToSoulmate(SoulmateEventType.SHARED_AFFLICTION, e.Serialize());
+        SendToSoulmates(SoulmateEventType.SHARED_AFFLICTION, e.Serialize());
     }
-    public static void SendWhoIsMySoulmateEvent()
+    public static void SendWhoIsMySoulmatesEvent()
     {
         WhoIsMySoulmate w;
-        SendEvent(SoulmateEventType.WHO_IS_MY_SOULMATE, w.Serialize(), ReceiverGroup.Others);
+        SendEvent(SoulmateEventType.WHO_IS_MY_SOULMATES, w.Serialize(), ReceiverGroup.Others);
     }
-    public static void SendThisIsYourSoulmateEvent(RecalculateSoulmatesEvent e, int target)
+    public static void SendThisIsYourSoulmatesEvent(RecalculateSoulmatesEvent e, int target)
     {
-        SendEventTo(SoulmateEventType.RECALCULATE, e.Serialize(), target);
+        SendEventTo(SoulmateEventType.RECALCULATE, e.Serialize(), [target]);
     }
 }

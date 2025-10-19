@@ -20,7 +20,8 @@ public static class SlipPatch1
         if (!(__instance.counter < 3f))
         {
             Character componentInParent = other.GetComponentInParent<Character>();
-            if ((bool)componentInParent && componentInParent.photonView.Owner.ActorNumber == Plugin.soulmateNumber())
+            int cnum = (bool) componentInParent ? componentInParent.photonView.Owner.ActorNumber : -1;
+            if ((bool)componentInParent && Soulmates.ActorIsSoulmate(cnum))
             {
                 // A bit awkward since now the timeout is shared between both players. Oh well.
                 __instance.counter = 0f;
@@ -42,21 +43,22 @@ public static class SlipPatch2
             return;
         }
 
-        // Repeat function's logic, but for soulmate.
-        var soulmate = Plugin.GetSoulmate(Plugin.soulmateNumber());
-        if (soulmate == null) return;
-
-        if (__instance.item.itemState == ItemState.Ground)
+        // Repeat slip check for all soulmates.
+        foreach (Character c in Soulmates.SoulmateCharacters())
         {
-            __instance.counter += Time.deltaTime;
-            if (!(__instance.counter < 3f) &&
-                !(Vector3.Distance(soulmate.Center, __instance.transform.position) > 1f) &&
-                soulmate.data.isGrounded &&
-                !(soulmate.data.avarageVelocity.magnitude < 1.5f))
+
+            if (__instance.item.itemState == ItemState.Ground)
             {
-                // A bit awkward since now the timeout is shared between both players. Oh well.
-                __instance.counter = 0f;
-                __instance.GetComponent<PhotonView>().RPC("RPCA_TriggerBanana", RpcTarget.All, Character.localCharacter.refs.view.ViewID);
+                __instance.counter += Time.deltaTime;
+                if (!(__instance.counter < 3f) &&
+                    !(Vector3.Distance(c.Center, __instance.transform.position) > 1f) &&
+                    c.data.isGrounded &&
+                    !(c.data.avarageVelocity.magnitude < 1.5f))
+                {
+                    // A bit awkward since now the timeout is shared between all soulmates. Oh well.
+                    __instance.counter = 0f;
+                    __instance.GetComponent<PhotonView>().RPC("RPCA_TriggerBanana", RpcTarget.All, Character.localCharacter.refs.view.ViewID);
+                }
             }
         }
     }

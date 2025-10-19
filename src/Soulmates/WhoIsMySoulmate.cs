@@ -15,7 +15,7 @@ class TellMeMySoulmate
         if (!PhotonNetwork.IsMasterClient) return;
         if (!Plugin.previousSoulmates.HasValue) return;
 
-        Events.SendThisIsYourSoulmateEvent(Plugin.previousSoulmates.Value, senderActorNumber);
+        Events.SendThisIsYourSoulmatesEvent(Plugin.previousSoulmates.Value, senderActorNumber);
     }
 }
 
@@ -28,7 +28,7 @@ class WhoIsMySoulmatePatch
     {
         if (!Plugin.previousSoulmates.HasValue)
         {
-            Events.SendWhoIsMySoulmateEvent();
+            Events.SendWhoIsMySoulmatesEvent();
         }
     }
 }

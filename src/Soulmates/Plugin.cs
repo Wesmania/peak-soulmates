@@ -28,6 +28,62 @@ public static class Extensions
     }
 }
 
+public static class Soulmates
+{
+    private static HashSet<string> globalSoulmates = [];
+
+    public static HashSet<int> SoulmateNumbers()
+    {
+        var ps = PhotonNetwork.PlayerList.ToDictionary(p => p.NickName);
+        return [.. globalSoulmates.Select(sn => ps.ContainsKey(sn) ? ps[sn].ActorNumber : -1).Where(n => n != -1)];
+    }
+    public static bool ActorIsSoulmate(int actor)
+    {
+        return SoulmateNumbers().Contains(actor);
+    }
+    public static void SetGlobalSoulmates(HashSet<string> s)
+    {
+        globalSoulmates = s;
+    }
+    public static bool NoSoulmates()
+    {
+        return globalSoulmates.Count == 0;
+    }
+    public static string SoulmateLog()
+    {
+        return String.Join(", ", globalSoulmates);
+    }
+
+    public static string SoulmateText()
+    {
+        if (NoSoulmates())
+        {
+            return "Soulmate: None";
+        }
+        else if (globalSoulmates.Count == 1)
+        {
+            return "Soulmate: " + globalSoulmates.First();
+        }
+        else
+        {
+            return "Soulmates:\n" + String.Join("\n", globalSoulmates);
+        }
+    }
+    public static int LiveSoulmateCount()
+    {
+        return SoulmateNumbers().Count(n =>
+        {
+            var c = Plugin.GetSoulmate(n);
+            return c != null && c.isLiv();
+        });
+    }
+
+    public static List<Character> SoulmateCharacters()
+    {
+        return SoulmateNumbers().Select(n => Plugin.GetSoulmate(n)).Where(c => c != null).ToList()!;
+    }
+}
+
 [BepInAutoPlugin]
 public partial class Plugin : BaseUnityPlugin
 {
@@ -104,15 +160,6 @@ public partial class Plugin : BaseUnityPlugin
         }
         return true;
     }
-
-    public static string globalSoulmate = "";
-    public static int soulmateNumber()
-    {
-        if (globalSoulmate == "") return -1;
-        var s = PhotonNetwork.PlayerList.ToList().Find(p => p.NickName == globalSoulmate);
-        if (s == null) return -1;
-        return s.ActorNumber;
-    }
     public static string indexToNick(int idx)
     {
         var s = PhotonNetwork.PlayerList.ToList().Find(p => p.ActorNumber == idx);
@@ -150,7 +197,7 @@ public partial class Plugin : BaseUnityPlugin
             case (int)SoulmateEventType.SHARED_AFFLICTION:
                 AfflictionUtil.onSharedAfflictionEvent(photonEvent);
                 break;
-            case (int)SoulmateEventType.WHO_IS_MY_SOULMATE:
+            case (int)SoulmateEventType.WHO_IS_MY_SOULMATES:
                 TellMeMySoulmate.OnWhoIsMySoulmate(photonEvent);
                 break;
             default:
@@ -168,7 +215,7 @@ public partial class Plugin : BaseUnityPlugin
             return;
         }
         Character localChar = Character.localCharacter;
-        if (senderActorNumber != soulmateNumber())
+        if (!Soulmates.ActorIsSoulmate(senderActorNumber))
         {
             return;
         }
@@ -209,25 +256,25 @@ public partial class Plugin : BaseUnityPlugin
         }
     }
 
-    private static string findSoulmate(List<int> soulmates)
+    private static HashSet<string> findSoulmates(List<int> soulmates)
     {
         var my_actor = PhotonNetwork.LocalPlayer.ActorNumber;
         var pos = soulmates.FindIndex(x => x == my_actor);
         if (pos == -1)
         {
             Log.LogInfo($"Did not find myself ({my_actor}) on soulmate list!");
-            return "";
+            return [];
         }
         Log.LogInfo($"Found my index: {pos}");
         var soulmate_index = pos % 2 == 0 ? pos + 1 : pos - 1;
         if (soulmate_index >= soulmates.Count)
         {
             Log.LogInfo(String.Format("I am last player on the list and have no soulmate"));
-            return "";
+            return [];
         }
         else
         {
-            return indexToNick(soulmates[soulmate_index]);
+            return [indexToNick(soulmates[soulmate_index])];
         }
     }
 
@@ -263,16 +310,15 @@ public partial class Plugin : BaseUnityPlugin
 
         previousSoulmates = soulmates;
 
-        var oldSoulmateIndex = globalSoulmate;
-        globalSoulmate = findSoulmate(soulmates.soulmates);
+        Soulmates.SetGlobalSoulmates(findSoulmates(soulmates.soulmates));
 
-        if (globalSoulmate == "")
+        if (Soulmates.NoSoulmates())
         {
-            Log.LogInfo("No soulmate");
+            Log.LogInfo("No soulmates");
         }
         else
         {
-            Log.LogInfo($"New soulmate: {globalSoulmate}");
+            Log.LogInfo($"New soulmates: {Soulmates.SoulmateLog()}");
         }
 
         if (soulmates.firstTime)
@@ -285,16 +331,17 @@ public partial class Plugin : BaseUnityPlugin
             ConnectToNewSoulmate(soulmates);
         }
 
-        if (globalSoulmate == "")
+        int delay;
+        if (soulmates.firstTime)
         {
-            SoulmateTextPatch.SetSoulmateText("Soulmate: None", 10);
-            return;
+            delay = 10;
         }
         else
         {
-            Log.LogInfo(String.Format("My soulmate is {0})", globalSoulmate));
-            SoulmateTextPatch.SetSoulmateText("Soulmate: " + globalSoulmate, 10);
+            // Some time after biome title card
+            delay = 15;
         }
+        SoulmateTextPatch.SetSoulmateText(Soulmates.SoulmateText(), delay);
     }
 
     public static RecalculateSoulmatesEvent? RecalculateSoulmate(bool firstTime)

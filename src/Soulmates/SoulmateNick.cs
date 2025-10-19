@@ -15,7 +15,7 @@ public class SoulmateNickPatch {
         var co = c.photonView.Owner.ActorNumber;
         var t = __instance.playerNameText[index].text;
 
-        if (co != Plugin.soulmateNumber())
+        if (!Soulmates.ActorIsSoulmate(co))
         {
             // FIXME what is the original color?
             t.color = Color.white;

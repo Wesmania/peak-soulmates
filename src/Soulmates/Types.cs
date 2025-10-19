@@ -155,5 +155,5 @@ enum SoulmateEventType
     SHARED_BONK = 4,
     SHARED_EXTRA_STAMINA = 5,
     SHARED_AFFLICTION = 6,
-    WHO_IS_MY_SOULMATE = 7,
+    WHO_IS_MY_SOULMATES = 7,
 }

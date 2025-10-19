@@ -56,7 +56,7 @@ public static class Weight
 
         playerWeights[senderActorNumber] = weight;
 
-        if (senderActorNumber == Plugin.soulmateNumber())
+        if (Soulmates.ActorIsSoulmate(senderActorNumber))
         {
             if (Plugin.localCharIsReady())
             {
@@ -80,23 +80,27 @@ public static class Weight
         float thorns = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
         float weight = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
 
-        var soulmate = Plugin.GetSoulmate(Plugin.soulmateNumber());
-        if (soulmate == null)
-        {
-            return;
-        }
-        if (!soulmate.isLiv())
-        {
-            return; // Sanity check: don't share status of dead people
-        }
-        if (!playerWeights.ContainsKey(Plugin.soulmateNumber()))
-        {
-            Plugin.Log.LogInfo($"No player weight entry for soulmate {Plugin.globalSoulmate}");
-            return;
-        }
-        var soulmateWeights = playerWeights[Plugin.soulmateNumber()];
+        var allSoulmates = Soulmates.SoulmateCharacters();
+        float soulmateCount = allSoulmates.Count;
 
-        float finalWeight = (weight + soulmateWeights.weight) / 2;
+        UpdateWeight soulmateWeights;
+        soulmateWeights.weight = 0;
+        soulmateWeights.thorns = 0;
+
+        foreach (var soulmate in allSoulmates) {
+            if (!soulmate.isLiv())
+            {
+                continue; // Sanity check: don't share status of dead people
+            }
+            if (!playerWeights.ContainsKey(soulmate.photonView.Owner.ActorNumber))
+            {
+                continue;
+            }
+            soulmateWeights.weight += playerWeights[soulmate.photonView.Owner.ActorNumber].weight;
+            soulmateWeights.thorns += playerWeights[soulmate.photonView.Owner.ActorNumber].thorns;
+        }
+
+        float finalWeight = (weight + soulmateWeights.weight) / (soulmateCount + 1);
         float finalThorns = thorns + soulmateWeights.thorns;    // Thorns are cumulative
 
         affs.SetStatus(CharacterAfflictions.STATUSTYPE.Weight, finalWeight);

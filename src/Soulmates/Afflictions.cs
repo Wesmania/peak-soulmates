@@ -26,7 +26,7 @@ static class AfflictionUtil
         }
 
         Character localChar = Character.localCharacter;
-        if (Plugin.soulmateNumber() != senderActorNumber)
+        if (!Soulmates.ActorIsSoulmate(senderActorNumber))
         {
             return;
         }

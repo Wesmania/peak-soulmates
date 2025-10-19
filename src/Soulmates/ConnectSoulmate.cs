@@ -4,70 +4,43 @@ using ExitGames.Client.Photon;
 
 namespace Soulmates;
 
-// Check fou soulmate death, disconnects and reconnects soulmates as necessary.
+// Check for soulmate death, update our status as necessary.
+// Right now the only thing we update is shared weight/thorns.
 public static class ConnectSoulmate
 {
-    private static bool globalConnectedToSoulmate = false;
+    private static int globalConnectedSoulmateCount = 0;
 
-    public static bool ConnectedToSoulmateStatus()
+    // Count is good enough, chances that 2 soulmates die/revive at the same time are super low.
+    public static int ConnectedToSoulmateCount()
     {
         if (!Plugin.localCharIsReady())
         {
-            return false;
-        }
-        var soulmate = Plugin.GetSoulmate(Plugin.soulmateNumber());
-        if (soulmate == null)
-        {
-            return false;
+            return 0;
         }
         if (!Character.localCharacter.isLiv())
         {
-            return false;
+            return 0;
         }
-        if (!soulmate.isLiv())
-        {
-            return false;
-        }
-        return true;
+        return Soulmates.LiveSoulmateCount();
     }
     public static void UpdateSoulmateStatus()
     {
-        if (!Plugin.localCharIsReady())
+        if (Character.localCharacter == null)
         {
             return;
         }
-        bool connected_to_soulmate = ConnectedToSoulmateStatus();
-        if (!connected_to_soulmate && globalConnectedToSoulmate)
+        int soulmate_count = ConnectedToSoulmateCount();
+        if (soulmate_count != globalConnectedSoulmateCount)
         {
-            DisconnectFromSoulmate();
+            UpdateConnectedSoulmates();
         }
-        if (connected_to_soulmate && !globalConnectedToSoulmate)
-        {
-            DoConnectToSoulmate();
-        }
-        globalConnectedToSoulmate = connected_to_soulmate;
     }
-
-    private static void DisconnectFromSoulmate()
-    {
-        Plugin.Log.LogInfo("Disconnecting from soulmate.");
-        if (!Plugin.localCharIsReady())
-        {
-            return;
-        }
-
-        Character localChar = Character.localCharacter;
-        // Soulmate is dead or disconnected. Keep his burden.
-        // Only set our weight and thorns to local values.
-        localChar.refs.afflictions.UpdateWeight();
-    }
-    private static void DoConnectToSoulmate()
+    private static void UpdateConnectedSoulmates()
     {
         if (!Plugin.localCharIsReady())
         {
             return;
         }
-
         Character localChar = Character.localCharacter;
         localChar.refs.afflictions.UpdateWeight();
     }

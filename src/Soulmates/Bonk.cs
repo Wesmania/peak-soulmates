@@ -18,7 +18,7 @@ public static class Bonk
         }
 
         Character localChar = Character.localCharacter;
-        if (Plugin.soulmateNumber() != bonk.victim)
+        if (!Soulmates.ActorIsSoulmate(bonk.victim))
         {
             return;
         }
