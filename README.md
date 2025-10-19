@@ -14,19 +14,16 @@ Implemented:
 * Sharing extra stamina USE! (configurable)
 * Shared lollipops and energy drinks! (configurable)
 * Shared slipping! (configurable)
-
-Implemented, but buggy:
-
-* New soulmates chosen at every biome! (Bug: does not trigger at campfires)
+* New soulmates chosen at every biome!
 
 Bugs:
 
-* Sometimes players might become immune to cold after eating scorchberries?
+* Players become immune to cold and have untreatable heat applied from things like scorchberries and geysers.
+* Players that disconnect and rejoin no longer know who their soulmate is.
 
 ## Planned features
 
 * Logo that's not a half-assed "shared damage" ripoff.
-* Better way to indicate who's your soulmate.
 * Fix bugs.
 
 ## Installation

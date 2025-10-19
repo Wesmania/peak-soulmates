@@ -39,3 +39,8 @@ First kind of working version
 ## V0.2.1
 
 * Probably fix incorrect weights/thorns calculations.
+
+## V0.2.2
+
+* Soulmate color is now green.
+* Fixed add/subtract messages sent on recursive calls. Probably doesn't fix the heat bug.
