@@ -19,6 +19,8 @@ Implemented:
 Implemented, but maybe buggy:
 
 * Players that disconnect and rejoin should re-discover what their soulmate is from other players.
+* Collecting players into larger soulbound groups than 2 players! (configurable)
+* Sharing soulmate damage/healing at a different rate than one-to-one! (configurable)
 
 ## Planned features
 
