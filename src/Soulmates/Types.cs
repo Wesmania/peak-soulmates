@@ -16,6 +16,7 @@ public struct Config
     public bool sharedExtraStaminaUse;
     public bool sharedLolli;
     public bool sharedEnergol;
+    public int soulmateGroupSize;
 }
 
 [Serializable]

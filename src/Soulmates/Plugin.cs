@@ -89,6 +89,7 @@ public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log { get; private set; } = null!;
     internal static ConfigEntry<bool> Enabled { get; private set; } = null!;
+    internal static ConfigEntry<int> SoulmateGroupSize { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedBonk { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedSlip { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedExtraStaminaGain { get; private set; } = null!;
@@ -104,6 +105,7 @@ public partial class Plugin : BaseUnityPlugin
         Log.LogInfo($"Plugin {Name} version 0.2.1 is loaded!");
 
         Enabled = Config.Bind("Enabled", "Enabled", true, "Enable/disable the mod with this");
+        SoulmateGroupSize = Config.Bind("SoulmateGroupSize", "Enabled", 2, "How many people are bound in one group. Defaults to 2.");
         EnableSharedBonk = Config.Bind("Shared Bonk", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
         EnableSharedSlip = Config.Bind("Shared Slip", "EnableSharedSlip", true, "Slipping on something makes the soulmate slip too");
         EnableSharedExtraStaminaGain = Config.Bind("Shared extra stamina gain",
@@ -149,6 +151,11 @@ public partial class Plugin : BaseUnityPlugin
         {
             PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
         }
+    }
+
+    private static int GetSoulmateGroupSize()
+    {
+        return previousSoulmates.HasValue ? previousSoulmates.Value.config.soulmateGroupSize : SoulmateGroupSize.Value;
     }
 
     public static bool localCharIsReady()
@@ -258,6 +265,7 @@ public partial class Plugin : BaseUnityPlugin
 
     private static HashSet<string> findSoulmates(List<int> soulmates)
     {
+        var groupSize = GetSoulmateGroupSize();
         var my_actor = PhotonNetwork.LocalPlayer.ActorNumber;
         var pos = soulmates.FindIndex(x => x == my_actor);
         if (pos == -1)
@@ -266,16 +274,11 @@ public partial class Plugin : BaseUnityPlugin
             return [];
         }
         Log.LogInfo($"Found my index: {pos}");
-        var soulmate_index = pos % 2 == 0 ? pos + 1 : pos - 1;
-        if (soulmate_index >= soulmates.Count)
-        {
-            Log.LogInfo(String.Format("I am last player on the list and have no soulmate"));
-            return [];
-        }
-        else
-        {
-            return [indexToNick(soulmates[soulmate_index])];
-        }
+        var soulmatesBase = pos % groupSize;
+        var soulmateIndices = Enumerable.Range(soulmatesBase, groupSize)
+                                        .Where(i => i != pos && i < soulmates.Count).ToList();
+        Log.LogInfo(String.Format($"Soulmate group size: {soulmateIndices.Count}"));
+        return soulmateIndices.Select(i => indexToNick(soulmates[i])).ToHashSet();
     }
 
     public static Character? GetSoulmate(int actor)
@@ -382,6 +385,7 @@ public partial class Plugin : BaseUnityPlugin
             soulmates.config.sharedExtraStaminaUse = EnableSharedExtraStaminaUse.Value;
             soulmates.config.sharedLolli = EnableSharedLolli.Value;
             soulmates.config.sharedEnergol = EnableSharedEnergol.Value;
+            soulmates.config.soulmateGroupSize = SoulmateGroupSize.Value;
         }
 
         // FIXME: make sure to ignore dead soulmates...
