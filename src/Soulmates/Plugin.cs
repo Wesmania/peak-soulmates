@@ -90,6 +90,7 @@ public partial class Plugin : BaseUnityPlugin
     internal static ManualLogSource Log { get; private set; } = null!;
     internal static ConfigEntry<bool> Enabled { get; private set; } = null!;
     internal static ConfigEntry<int> SoulmateGroupSize { get; private set; } = null!;
+    internal static ConfigEntry<float> SoulmateStrength { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedBonk { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedSlip { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedExtraStaminaGain { get; private set; } = null!;
@@ -104,23 +105,24 @@ public partial class Plugin : BaseUnityPlugin
         Log = Logger;
         Log.LogInfo($"Plugin {Name} version 0.2.1 is loaded!");
 
-        Enabled = Config.Bind("Enabled", "Enabled", true, "Enable/disable the mod with this");
-        SoulmateGroupSize = Config.Bind("SoulmateGroupSize", "Enabled", 2, "How many people are bound in one group. Defaults to 2.");
-        EnableSharedBonk = Config.Bind("Shared Bonk", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
-        EnableSharedSlip = Config.Bind("Shared Slip", "EnableSharedSlip", true, "Slipping on something makes the soulmate slip too");
-        EnableSharedExtraStaminaGain = Config.Bind("Shared extra stamina gain",
+        Enabled = Config.Bind("Config", "Enabled", true, "Enable/disable the mod with this");
+        SoulmateGroupSize = Config.Bind("Config", "SoulmateGroupSize", 2, "How many people are bound in one group. Defaults to 2.");
+        SoulmateStrength = Config.Bind("Config", "SoulmateStrength", 1.0f, "How much of soulmate's status is applied to you");
+        EnableSharedBonk = Config.Bind("Config", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
+        EnableSharedSlip = Config.Bind("Config", "EnableSharedSlip", true, "Slipping on something makes the soulmate slip too");
+        EnableSharedExtraStaminaGain = Config.Bind("Config",
                                                    "EnableSharedExtraStaminaGain",
                                                    true,
                                                    "Soulmates share extra stamina gained");
-        EnableSharedExtraStaminaUse = Config.Bind("Shared extra stamina use",
+        EnableSharedExtraStaminaUse = Config.Bind("Config",
                                                   "EnableSharedExtraStaminaUse",
                                                   true,
                                                   "Soulmates use a single extra stamina pool");
-        EnableSharedLolli = Config.Bind("Shared lollipops",
+        EnableSharedLolli = Config.Bind("Config",
                                         "EnableSharedLolli",
                                         true,
                                         "Soulmates share lollipop boost");
-        EnableSharedEnergol = Config.Bind("Shared energy drinks",
+        EnableSharedEnergol = Config.Bind("Config",
                                         "EnableSharedEnergol",
                                         true,
                                         "Soulmates share energy drink boost");
@@ -157,6 +159,11 @@ public partial class Plugin : BaseUnityPlugin
     {
         return previousSoulmates.HasValue ? previousSoulmates.Value.config.soulmateGroupSize : SoulmateGroupSize.Value;
     }
+    public static float GetSoulmateStrength()
+    {
+        return previousSoulmates.HasValue ? previousSoulmates.Value.config.soulmateStrength : SoulmateStrength.Value;
+    }
+
 
     public static bool localCharIsReady()
     {
@@ -240,6 +247,7 @@ public partial class Plugin : BaseUnityPlugin
 
         SharedDamagePatch.isReceivingSharedDamage.Add(localChar.photonView.ViewID);
         var affs = localChar.refs.afflictions;
+        damage.value *= GetSoulmateStrength();
         try
         {
             switch (damage.kind)
@@ -386,6 +394,7 @@ public partial class Plugin : BaseUnityPlugin
             soulmates.config.sharedLolli = EnableSharedLolli.Value;
             soulmates.config.sharedEnergol = EnableSharedEnergol.Value;
             soulmates.config.soulmateGroupSize = SoulmateGroupSize.Value;
+            soulmates.config.soulmateStrength = SoulmateStrength.Value;
         }
 
         // FIXME: make sure to ignore dead soulmates...

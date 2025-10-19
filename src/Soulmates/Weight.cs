@@ -100,8 +100,10 @@ public static class Weight
             soulmateWeights.thorns += playerWeights[soulmate.photonView.Owner.ActorNumber].thorns;
         }
 
-        float finalWeight = (weight + soulmateWeights.weight) / (soulmateCount + 1);
-        float finalThorns = thorns + soulmateWeights.thorns;    // Thorns are cumulative
+        float coeff = Plugin.GetSoulmateStrength();
+
+        float finalWeight = (weight + soulmateWeights.weight * coeff) / (coeff * soulmateCount + 1);
+        float finalThorns = thorns + (soulmateWeights.thorns * coeff);    // Thorns are cumulative
 
         affs.SetStatus(CharacterAfflictions.STATUSTYPE.Weight, finalWeight);
         affs.SetStatus(CharacterAfflictions.STATUSTYPE.Thorns, finalThorns);
