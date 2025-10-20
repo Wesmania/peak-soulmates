@@ -5,6 +5,11 @@ namespace Soulmates;
 
 static class StamUtil
 {
+    public static float SingleStaminaMult()
+    {
+        return Plugin.GetSoulmateStrength();
+    }
+
     public static bool sharedExtraStaminaUse()
     {
         return Plugin.previousSoulmates.HasValue && Plugin.previousSoulmates.Value.config.sharedExtraStaminaUse;
@@ -14,7 +19,8 @@ static class StamUtil
     {
         return Plugin.previousSoulmates.HasValue && Plugin.previousSoulmates.Value.config.sharedExtraStaminaGain;
     }
-    public static bool onlySharesGain() {
+    public static bool onlySharesGain()
+    {
         return sharedExtraStaminaGain() && !sharedExtraStaminaUse();
     }
 
@@ -36,9 +42,26 @@ static class StamUtil
         }
 
         StaminaPatch.skipMessage += 1;
-        localChar.AddExtraStamina(stamina.diff);
+        localChar.AddExtraStamina(stamina.diff * SingleStaminaMult());
         StaminaPatch.skipMessage -= 1;
-    } 
+    }
+
+    public static float MyStaminaGain()
+    {
+        var strength = Plugin.GetSoulmateStrength();
+        var count = Plugin.GetSoulmateGroupSize();
+
+        var total = 1 + strength * (count - 1);
+        return 1 / total;
+    }
+    public static float TheirStaminaGain()
+    {
+        var strength = Plugin.GetSoulmateStrength();
+        var count = Plugin.GetSoulmateGroupSize();
+
+        var total = 1 + strength * (count - 1);
+        return strength / total;
+    }
 }
 
 [HarmonyPatch(typeof(Character))]
@@ -69,10 +92,24 @@ public static class StaminaPatch
         }
 
         // If only gain is enabled, we should split the stamina between soulmates.
-        // Otherwise, give it to both sides since they both use the same pool.
-        if (diff > 0.0f && StamUtil.onlySharesGain())
+        // Otherwise, give it to the other side with a multiplier since pool is shared.
+        if (diff > 0.0f)
         {
-            diff /= 2.0f;
+            if (StamUtil.onlySharesGain())
+            {
+                diff *= StamUtil.TheirStaminaGain();
+            }
+            else
+            {
+                diff *= Plugin.GetSoulmateStrength();
+            }
+        }
+
+        if (diff < 0.0f)
+        {
+            // We share gain and loss, so stamina is fully shared.
+            // Burn everyone else's stamina multiplied by strength.
+            diff *= Plugin.GetSoulmateStrength();
         }
 
         SharedExtraStamina e;
@@ -113,11 +150,11 @@ public static class StaminaPatch
             // If only gain is shared, we should split the stamina between soulmates. Correct the gain.
             // Value is negative, so our modified AddExtraStamina won't meddle with things.
             skipMessage += 1;
-            __instance.AddExtraStamina(-diff / 2.0f);
+            float real_val = diff * StamUtil.MyStaminaGain();
+            __instance.AddExtraStamina(real_val - diff);
             skipMessage -= 1;
-
         }
-        // Unhalved value, we halve it here
+        // Unreduced value, we reduce it here
         SendStaminaDiff(__instance, diff);
     }
 
@@ -129,10 +166,10 @@ public static class StaminaPatch
 
         if (!__instance.IsLocal) return;
         // Careful! If we added too much, stamina will clamp.
-        // Halve the value here to prevent that.
+        // Reduce the value here to prevent that.
         if (add > 0.0f && StamUtil.onlySharesGain())
         {
-            add /= 2.0f;
+            add *= StamUtil.MyStaminaGain();
         }
     }
 

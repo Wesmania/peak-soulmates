@@ -155,7 +155,7 @@ public partial class Plugin : BaseUnityPlugin
         }
     }
 
-    private static int GetSoulmateGroupSize()
+    public static int GetSoulmateGroupSize()
     {
         return previousSoulmates.HasValue ? previousSoulmates.Value.config.soulmateGroupSize : SoulmateGroupSize.Value;
     }
