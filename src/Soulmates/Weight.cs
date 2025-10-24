@@ -6,7 +6,7 @@ namespace Soulmates;
 
 public static class Weight
 {
-    public static Dictionary<int, UpdateWeight> playerWeights = new Dictionary<int, UpdateWeight>();
+    private static Dictionary<int, UpdateWeight> playerWeights = new Dictionary<int, UpdateWeight>();
     public static bool shouldSendWeight;
 
     public static void Clear()
@@ -15,7 +15,7 @@ public static class Weight
         shouldSendWeight = false;
     }
     // Returns true is weight has to be propagated.
-    public static bool updateLocalWeight(UpdateWeight w)
+    private static bool updateLocalWeightAndCheckIfChanged(UpdateWeight w)
     {
         Character localChar = Character.localCharacter;
         if (localChar == null)
@@ -33,17 +33,21 @@ public static class Weight
         return old.weight != w.weight || old.thorns != w.thorns;
     }
 
-    public static UpdateWeight? getLocalWeight()
+    public static UpdateWeight getLocalWeight()
     {
+        UpdateWeight w;
+        w.weight = 0.0f;
+        w.thorns = 0.0f;
+
         Character localChar = Character.localCharacter;
         if (localChar == null)
         {
-            return null;
+            return w;
         }
         int id = localChar.photonView.Owner.ActorNumber;
         if (!playerWeights.ContainsKey(id))
         {
-            return null;
+            return w;
         }
         return playerWeights[id];
     }
@@ -66,19 +70,15 @@ public static class Weight
         }
     }
 
-    // Called after UpdateWeight.
-    public static void RecalculateSharedWeight()
+    public static UpdateWeight RecalculateSharedWeight(UpdateWeight original)
     {
         if (!Plugin.localCharIsReady())
         {
-            return;
+            return original;
         }
 
         Character localChar = Character.localCharacter;
         var affs = localChar.refs.afflictions;
-
-        float thorns = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-        float weight = affs.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
 
         var allSoulmates = Soulmates.SoulmateCharacters();
         float soulmateCount = allSoulmates.Count;
@@ -102,14 +102,13 @@ public static class Weight
 
         float coeff = Plugin.GetSoulmateStrength();
 
-        float finalWeight = (weight + soulmateWeights.weight * coeff) / (coeff * soulmateCount + 1);
-        float finalThorns = thorns + (soulmateWeights.thorns * coeff);    // Thorns are cumulative
+        original.weight = (original.weight + soulmateWeights.weight * coeff) / (coeff * soulmateCount + 1);
+        original.thorns += soulmateWeights.thorns * coeff;    // Thorns are cumulative
 
-        affs.SetStatus(CharacterAfflictions.STATUSTYPE.Weight, finalWeight);
-        affs.SetStatus(CharacterAfflictions.STATUSTYPE.Thorns, finalThorns);
+        return original;
     }
 
-    public static bool ShouldSendWeight()
+    private static bool ShouldSendWeight()
     {
         bool o = shouldSendWeight;
         shouldSendWeight = false;
@@ -121,33 +120,38 @@ public static class Weight
         if (Weight.ShouldSendWeight())
         {
             var w = getLocalWeight();
-            if (!w.HasValue) return;
-
-            Events.SendUpdateWeightEvent(w.Value);
+            Events.SendUpdateWeightEvent(w);
         }
     }
-}
 
-[HarmonyPatch(typeof(CharacterAfflictions))]
-public class WeightPatch1
-{
-    [HarmonyPostfix]
-    [HarmonyPatch("UpdateWeight")]
-    public static void UpdateWeightPostfix(CharacterAfflictions __instance)
+    public static float PreSetWeight(CharacterAfflictions c, CharacterAfflictions.STATUSTYPE kind, float value)
     {
-        // After updating local weight, adjust for shared weight. Setup weight update if needed.
-        UpdateWeight w;
+        if (!c.character.IsLocal) return value;
+        if (!kind.isAbsolute()) return value;
 
-        if (Character.localCharacter == null) return;
-
-        var aff = Character.localCharacter.refs.afflictions;
-        w.weight = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Weight);
-        w.thorns = aff.GetCurrentStatus(CharacterAfflictions.STATUSTYPE.Thorns);
-        if (Weight.updateLocalWeight(w))
+        UpdateWeight w = getLocalWeight();
+        if (kind == CharacterAfflictions.STATUSTYPE.Weight)
         {
-            Weight.shouldSendWeight = true;
+            w.weight = value;
         }
-        Weight.RecalculateSharedWeight();
-        return;
+        else
+        {
+            w.thorns = value;
+        }
+
+        if (updateLocalWeightAndCheckIfChanged(w))
+        {
+            shouldSendWeight = true;
+        }
+        w = RecalculateSharedWeight(w);
+
+        if (kind == CharacterAfflictions.STATUSTYPE.Weight)
+        {
+            return w.weight;
+        }
+        else
+        {
+            return w.thorns;
+        }
     }
 }

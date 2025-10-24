@@ -31,9 +31,14 @@ public class SharedDamagePatch
 
     [HarmonyPrefix]
     [HarmonyPatch("SetStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float))]
-    public static void SetStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, out float __state)
+    public static void SetStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, ref float amount, out float __state)
     {
         __state = __instance.GetCurrentStatus(statusType);
+        CharacterAfflictions.STATUSTYPE st = statusType;
+        if (st.isAbsolute())
+        {
+            amount = Weight.PreSetWeight(__instance, statusType, amount);
+        }
     }
 
     [HarmonyPostfix]
