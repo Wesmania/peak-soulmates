@@ -9,6 +9,8 @@ using System.Linq;
 using pworld.Scripts.Extensions;
 using System;
 using pworld.Scripts;
+using Zorro.Core;
+using UnityEngine.UI;
 
 namespace Soulmates;
 
@@ -31,6 +33,7 @@ public static class Extensions
 public static class Soulmates
 {
     private static HashSet<string> globalSoulmates = [];
+    public static Dictionary<string, int> soulmateSets = [];
 
     public static HashSet<int> SoulmateNumbers()
     {
@@ -274,6 +277,9 @@ public partial class Plugin : BaseUnityPlugin
     private static HashSet<string> findSoulmates(List<int> soulmates)
     {
         var groupSize = GetSoulmateGroupSize();
+        Soulmates.soulmateSets = soulmates.Select((id, idx) => (id, idx / groupSize))
+                                          .ToDictionary(p => indexToNick(p.Item1), p => p.Item2);
+
         var my_actor = PhotonNetwork.LocalPlayer.ActorNumber;
         var pos = soulmates.FindIndex(x => x == my_actor);
         if (pos == -1)

@@ -15,14 +15,18 @@ public class SoulmateNickPatch {
         var co = c.photonView.Owner.ActorNumber;
         var t = __instance.playerNameText[index].text;
 
-        if (!Soulmates.ActorIsSoulmate(co))
+        if (Soulmates.ActorIsSoulmate(co))
         {
-            // FIXME what is the original color?
+            t.color = Colors.soulmateColor;
+            return;
+        }
+        var nick = c.photonView.Owner.NickName;
+        if (!Soulmates.soulmateSets.ContainsKey(nick))
+        {
             t.color = Color.white;
+            return;
         }
-        else
-        {
-            t.color = new Color(0.3f, 1f, 0.3f);
-        }
+        var gid = Soulmates.soulmateSets[nick];
+        t.color = Colors.getColor(gid);
     }
 }
