@@ -35,6 +35,12 @@ public static class SoulmateTextPatch
         var textChatObj = new GameObject("TextChat");
         textChatObj.transform.SetParent(SoulmatePrompt.transform, false);
         text = textChatObj.AddComponent<TextMeshProUGUI>();
+
+        var r = text.GetComponent<RectTransform>();
+        var delta = r.sizeDelta;
+        delta.x *= 2;
+        r.sizeDelta = delta;
+
         text_setter = textChatObj.AddComponent<TextSetter>();
         try
         {
