@@ -54,3 +54,5 @@ First kind of working version
 * Bigger soulbound groups.
 * Configurable soulbound effect strength.
 * Unretardate configuration file.
+* Mark each soulbound group with a nick color. Your soulmates are always green.
+* Maybe fix the jittery weight/thorns bug.
