@@ -56,3 +56,7 @@ First kind of working version
 * Unretardate configuration file.
 * Mark each soulbound group with a nick color. Your soulmates are always green.
 * Maybe fix the jittery weight/thorns bug.
+
+## V0.2.5
+
+* Fixed the most obvious bugs.
