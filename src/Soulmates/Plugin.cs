@@ -291,7 +291,7 @@ public partial class Plugin : BaseUnityPlugin
         var soulmatesBase = pos % groupSize;
         var soulmateIndices = Enumerable.Range(soulmatesBase, groupSize)
                                         .Where(i => i != pos && i < soulmates.Count).ToList();
-        Log.LogInfo(String.Format($"Soulmate group size: {soulmateIndices.Count}"));
+        Log.LogInfo(String.Format($"Soulmate group size: {soulmateIndices.Count + 1}"));
         return soulmateIndices.Select(i => indexToNick(soulmates[i])).ToHashSet();
     }
 
