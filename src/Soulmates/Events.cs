@@ -8,23 +8,25 @@ namespace Soulmates;
 
 public static class Events
 {
-    private static void SendEvent(SoulmateEventType eventType, string e, ReceiverGroup who)
+    private static void SendEvent(SoulmateEventType eventType, string e, ReceiverGroup who, bool reliable=true)
     {
         object[] content = [(int)eventType, e];
         RaiseEventOptions raiseEventOptions = new() { Receivers = who };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+        var r = reliable ? SendOptions.SendReliable : SendOptions.SendUnreliable;
+        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, r);
     }
-    private static void SendEventTo(SoulmateEventType eventType, string e, int[] targets)
+    private static void SendEventTo(SoulmateEventType eventType, string e, int[] targets, bool reliable=true)
     {
         object[] content = [(int)eventType, e];
         RaiseEventOptions raiseEventOptions = new() { TargetActors = targets };
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, SendOptions.SendReliable);
+        var r = reliable ? SendOptions.SendReliable : SendOptions.SendUnreliable;
+        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, r);
     }
-    private static void SendToSoulmates(SoulmateEventType eventType, string e)
+    private static void SendToSoulmates(SoulmateEventType eventType, string e, bool reliable=true)
     {
         if (Soulmates.NoSoulmates()) return;
 
-        SendEventTo(eventType, e, Soulmates.SoulmateNumbers().ToArray());
+        SendEventTo(eventType, e, Soulmates.SoulmateNumbers().ToArray(), reliable);
     }
     public static void SendRecalculateSoulmateEvent(RecalculateSoulmatesEvent e)
     {
@@ -38,7 +40,13 @@ public static class Events
             Plugin.Log.LogInfo("$Tried to send a non-shared or absolute status type {statusType}");
             return;
         }
-        SendToSoulmates(SoulmateEventType.DAMAGE, e.Serialize());
+
+        bool reliable = true;
+        if (e.kind != SharedDamageKind.SET && e.value < 0.01)
+        {
+            reliable = false;
+        }
+        SendToSoulmates(SoulmateEventType.DAMAGE, e.Serialize(), reliable);
     }
     public static void SendUpdateWeightEvent(UpdateWeight e)
     {
