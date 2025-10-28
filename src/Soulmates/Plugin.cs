@@ -106,7 +106,7 @@ public partial class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = Logger;
-        Log.LogInfo($"Plugin {Name} version 0.2.5 is loaded!");
+        Log.LogInfo($"Plugin {Name} version 0.2.6 is loaded!");
 
         Enabled = Config.Bind("Config", "Enabled", true, "Enable/disable the mod with this");
         SoulmateGroupSize = Config.Bind("Config", "SoulmateGroupSize", 2, "How many people are bound in one group. Defaults to 2.");

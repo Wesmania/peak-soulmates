@@ -60,3 +60,9 @@ First kind of working version
 ## V0.2.5
 
 * Fixed the most obvious bugs.
+
+## V0.2.6
+
+* Added a message cache for tiny updates. Hopefully the mod will stop spamming
+  a bajillion messages per second now. Should help with the lag I've seen other
+  players have.
