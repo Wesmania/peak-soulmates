@@ -3,6 +3,7 @@ using System.Linq;
 using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
+using Unity.Mathematics;
 
 namespace Soulmates;
 
@@ -12,9 +13,9 @@ namespace Soulmates;
 // So, batch some of the values that tick a lot (hunger, cold, hot) and only send them once they go beyond a 1% threshold.
 public class EventCache
 {
-    public static EventCache instance = new EventCache();
+    public static EventCache instance = new();
 
-    private Dictionary<(CharacterAfflictions.STATUSTYPE, SharedDamageKind), float> cache = new Dictionary<(CharacterAfflictions.STATUSTYPE, SharedDamageKind), float>
+    private Dictionary<(CharacterAfflictions.STATUSTYPE, SharedDamageKind), float> cache = new()
     {
         { (CharacterAfflictions.STATUSTYPE.Hunger, SharedDamageKind.ADD), 0.0f },
         { (CharacterAfflictions.STATUSTYPE.Hunger, SharedDamageKind.SUBTRACT), 0.0f },
@@ -99,7 +100,7 @@ public static class Events
         e = e2.Value;
 
         bool reliable = true;
-        if (e.kind != SharedDamageKind.SET && e.value < 0.01)
+        if (e.kind != SharedDamageKind.SET && math.abs(e.value) < 0.01)
         {
             reliable = false;
         }
