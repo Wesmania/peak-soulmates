@@ -30,8 +30,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch("SetStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float))]
-    public static void SetStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, ref float amount, out float __state)
+    [HarmonyPatch("SetStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
+    public static void SetStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, ref float amount, bool pushStatus, out float __state)
     {
         __state = __instance.GetCurrentStatus(statusType);
         CharacterAfflictions.STATUSTYPE st = statusType;
@@ -42,8 +42,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPostfix]
-    [HarmonyPatch("SetStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float))]
-    public static void SetStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, float __state)
+    [HarmonyPatch("SetStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
+    public static void SetStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool pushStatus, float __state)
     {
         float current = __instance.GetCurrentStatus(statusType);
         float diff = current - __state;
@@ -65,8 +65,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
-    public static void AddStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, out SharedDamage __state)
+    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool))]
+    public static void AddStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, out SharedDamage __state)
     {
         __state.type = statusType;
         __state.value = amount;
@@ -80,8 +80,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPostfix]
-    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
-    public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, SharedDamage __state)
+    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool))]
+    public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, SharedDamage __state)
     {
         isRecursiveStatusCall[__instance.character.photonView.ViewID]--;
         if (isRecursiveStatusCall[__instance.character.photonView.ViewID] == 0)
@@ -91,8 +91,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch("SubtractStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
-    public static void SubtractStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, out SharedDamage __state)
+    [HarmonyPatch("SubtractStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool))]
+    public static void SubtractStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool decreasedNaturally, out SharedDamage __state)
     {
         __state.type = statusType;
         __state.value = amount;
@@ -106,8 +106,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPostfix]
-    [HarmonyPatch("SubtractStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool))]
-    public static void SubtractStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, SharedDamage __state)
+    [HarmonyPatch("SubtractStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool))]
+    public static void SubtractStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool decreasedNaturally, SharedDamage __state)
     {
         isRecursiveStatusCall[__instance.character.photonView.ViewID]--;
         if (isRecursiveStatusCall[__instance.character.photonView.ViewID] == 0)

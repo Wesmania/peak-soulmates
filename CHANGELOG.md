@@ -66,3 +66,8 @@ First kind of working version
 * Added a message cache for tiny updates. Hopefully the mod will stop spamming
   a bajillion messages per second now. Should help with the lag I've seen other
   players have.
+
+## V0.2.7
+
+* Updated the mod just enough to successfully load in the Roots update. Full
+  check-up pending.
