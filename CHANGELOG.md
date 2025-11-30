@@ -76,3 +76,4 @@ First kind of working version
 
 * Change most Photon messages to unreliable. This might help with some players
   lagging a lot.
+* New mod icon. Thank you, /v/!
