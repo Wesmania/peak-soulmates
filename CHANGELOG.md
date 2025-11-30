@@ -71,3 +71,8 @@ First kind of working version
 
 * Updated the mod just enough to successfully load in the Roots update. Full
   check-up pending.
+
+## V0.2.8
+
+* Change most Photon messages to unreliable. This might help with some players
+  lagging a lot.
