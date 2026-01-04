@@ -50,7 +50,7 @@ public static class Weight
 
         if (Plugin.globalSoulmates.PidIsSoulmate(sender))
         {
-            if (Plugin.localCharIsReady())
+            if (Plugin.LocalCharIsReady())
             {
                 // Will recalculate shared weight
                 Character.localCharacter.refs.afflictions.UpdateWeight();
@@ -60,7 +60,7 @@ public static class Weight
 
     public static UpdateWeight RecalculateSharedWeight(UpdateWeight original)
     {
-        if (!Plugin.localCharIsReady())
+        if (!Plugin.LocalCharIsReady())
         {
             return original;
         }
@@ -88,7 +88,7 @@ public static class Weight
             soulmateWeights.thorns += playerWeights[soulmate.p.id].thorns;
         }
 
-        float coeff = SoulmateProtocol.instance.GetSoulmateStrength();
+        float coeff = Plugin.config.SoulmateStrength();
 
         original.weight = (original.weight + soulmateWeights.weight * coeff) / (coeff * soulmateCount + 1);
         original.thorns += soulmateWeights.thorns * coeff;    // Thorns are cumulative

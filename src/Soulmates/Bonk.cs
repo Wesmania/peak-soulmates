@@ -10,7 +10,7 @@ public static class Bonk
     {
         var bonk = SharedBonk.Deserialize(json);
 
-        if (!Plugin.localCharIsReady())
+        if (!Plugin.LocalCharIsReady())
         {
             return;
         }
@@ -38,10 +38,7 @@ public static class BonkPatch
         Character componentInParent = coll.gameObject.GetComponentInParent<Character>();
         if ((bool)componentInParent && Time.time > __instance.lastBonkedTime + __instance.bonkCooldown)
         {
-            if (!SoulmateProtocol.instance.previousSoulmates.HasValue || !SoulmateProtocol.instance.previousSoulmates.Value.config.sharedBonk)
-            {
-                return;
-            }
+            if (!Plugin.config.SharedBonk()) return;
 
             var victimActor = componentInParent.photonView.Owner.ActorNumber;
             var victim = SteamComms.PhotonIdToPid(victimActor);

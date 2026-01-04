@@ -13,7 +13,7 @@ public static class ConnectSoulmate
     // Count is good enough, chances that 2 soulmates die/revive at the same time are super low.
     public static int ConnectedToSoulmateCount()
     {
-        if (!Plugin.localCharIsReady())
+        if (!Plugin.LocalCharIsReady())
         {
             return 0;
         }
@@ -21,7 +21,7 @@ public static class ConnectSoulmate
         {
             return 0;
         }
-        return Soulmates.LiveSoulmateCount();
+        return Plugin.globalSoulmates.LiveSoulmateCount();
     }
     public static void UpdateSoulmateStatus()
     {
@@ -37,7 +37,7 @@ public static class ConnectSoulmate
     }
     private static void UpdateConnectedSoulmates()
     {
-        if (!Plugin.localCharIsReady())
+        if (!Plugin.LocalCharIsReady())
         {
             return;
         }

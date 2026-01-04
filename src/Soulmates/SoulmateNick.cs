@@ -15,18 +15,18 @@ public class SoulmateNickPatch {
         var co = c.photonView.Owner.ActorNumber;
         var t = __instance.playerNameText[index].text;
 
-        if (Soulmates.ActorIsSoulmate(co))
+        t.color = Color.white;
+
+        var pid = SteamComms.PhotonIdToPid(co);
+        if (pid == null) return;
+
+        if (Plugin.globalSoulmates.PidIsSoulmate(pid.Value))
         {
             t.color = Colors.soulmateColor;
             return;
         }
-        var nick = c.photonView.Owner.NickName;
-        if (!Soulmates.soulmateSets.ContainsKey(nick))
-        {
-            t.color = Color.white;
-            return;
-        }
-        var gid = Soulmates.soulmateSets[nick];
-        t.color = Colors.getColor(gid);
+        var grp = Plugin.globalSoulmates.NickToSoulmateGroup(c.photonView.Owner.NickName);
+        if (grp == null) { return; }
+        t.color = Colors.getColor(grp.Value);
     }
 }

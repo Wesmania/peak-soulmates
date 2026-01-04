@@ -7,7 +7,7 @@ static class StamUtil
 {
     public static float SingleStaminaMult()
     {
-        return SoulmateProtocol.instance.GetSoulmateStrength();
+        return Plugin.config.SoulmateStrength();
     }
 
     public static bool sharedExtraStaminaUse()
@@ -28,7 +28,7 @@ static class StamUtil
     {
         var stamina = SharedExtraStamina.Deserialize(json);
 
-        if (!Plugin.localCharIsReady()) return;
+        if (!Plugin.LocalCharIsReady()) return;
         if (!Plugin.globalSoulmates.PidIsSoulmate(sender)) return;
 
         Character localChar = Character.localCharacter;
@@ -39,16 +39,16 @@ static class StamUtil
 
     public static float MyStaminaGain()
     {
-        var strength = SoulmateProtocol.instance.GetSoulmateStrength();
-        var count = SoulmateProtocol.instance.GetSoulmateGroupSize();
+        var strength = Plugin.config.SoulmateStrength();
+        var count = Plugin.config.SoulmateGroupSize();
 
         var total = 1 + strength * (count - 1);
         return 1 / total;
     }
     public static float TheirStaminaGain()
     {
-        var strength = SoulmateProtocol.instance.GetSoulmateStrength();
-        var count = SoulmateProtocol.instance.GetSoulmateGroupSize();
+        var strength = Plugin.config.SoulmateStrength();
+        var count = Plugin.config.SoulmateGroupSize();
 
         var total = 1 + strength * (count - 1);
         return strength / total;
@@ -92,7 +92,7 @@ public static class StaminaPatch
             }
             else
             {
-                diff *= SoulmateProtocol.instance.GetSoulmateStrength();
+                diff *= Plugin.config.SoulmateStrength();
             }
         }
 
@@ -100,7 +100,7 @@ public static class StaminaPatch
         {
             // We share gain and loss, so stamina is fully shared.
             // Burn everyone else's stamina multiplied by strength.
-            diff *= SoulmateProtocol.instance.GetSoulmateStrength();
+            diff *= Plugin.config.SoulmateStrength();
         }
 
         SharedExtraStamina e;
