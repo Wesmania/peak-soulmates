@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Peak.Afflictions;
 using UnityEngine;
+using NetworkingLibrary;
 
 namespace Soulmates;
 
@@ -24,7 +25,7 @@ public struct Config
 public struct RecalculateSoulmatesEvent
 {
     public Config config;
-    public List<int> soulmates;
+    public List<Pid> soulmates;
     public bool firstTime;
 
     public string Serialize()
@@ -95,7 +96,7 @@ public struct V3(Vector3 v)
 public struct SharedBonk
 {
     // Bonk() is called by random players, usually host. So remember the victim and send it to everyone.
-    public int victim;
+    public Pid victim;
     public float ragdollTime;
     public V3 force;
     public V3 contactPoint;
@@ -149,7 +150,7 @@ public struct WhoIsMySoulmate
     }
 }
 
-enum SoulmateEventType
+public enum SoulmateEventType
 {
     RECALCULATE = 0,
     DAMAGE = 1,

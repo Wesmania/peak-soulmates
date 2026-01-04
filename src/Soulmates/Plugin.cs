@@ -11,6 +11,7 @@ using System;
 using pworld.Scripts;
 using Zorro.Core;
 using UnityEngine.UI;
+using Sirenix.Utilities;
 
 namespace Soulmates;
 
@@ -30,64 +31,9 @@ public static class Extensions
     }
 }
 
-public static class Soulmates
-{
-    private static HashSet<string> globalSoulmates = [];
-    public static Dictionary<string, int> soulmateSets = [];
-
-    public static HashSet<int> SoulmateNumbers()
-    {
-        var ps = PhotonNetwork.PlayerList.ToDictionary(p => p.NickName);
-        return [.. globalSoulmates.Select(sn => ps.ContainsKey(sn) ? ps[sn].ActorNumber : -1).Where(n => n != -1)];
-    }
-    public static bool ActorIsSoulmate(int actor)
-    {
-        return SoulmateNumbers().Contains(actor);
-    }
-    public static void SetGlobalSoulmates(HashSet<string> s)
-    {
-        globalSoulmates = s;
-    }
-    public static bool NoSoulmates()
-    {
-        return globalSoulmates.Count == 0;
-    }
-    public static string SoulmateLog()
-    {
-        return String.Join(", ", globalSoulmates);
-    }
-
-    public static string SoulmateText()
-    {
-        if (NoSoulmates())
-        {
-            return "Soulmate: None";
-        }
-        else if (globalSoulmates.Count == 1)
-        {
-            return "Soulmate: " + globalSoulmates.First();
-        }
-        else
-        {
-            return "Soulmates:\n" + String.Join("\n", globalSoulmates);
-        }
-    }
-    public static int LiveSoulmateCount()
-    {
-        return SoulmateNumbers().Count(n =>
-        {
-            var c = Plugin.GetSoulmate(n);
-            return c != null && c.isLiv();
-        });
-    }
-
-    public static List<Character> SoulmateCharacters()
-    {
-        return SoulmateNumbers().Select(n => Plugin.GetSoulmate(n)).Where(c => c != null).ToList()!;
-    }
-}
 
 [BepInAutoPlugin]
+[BepInDependency("off_grid.NetworkingLibrary")]
 public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log { get; private set; } = null!;
@@ -103,6 +49,8 @@ public partial class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> EnableSharedEnergol { get; private set; } = null!;
 
     internal const byte SHARED_DAMAGE_EVENT_CODE = 198;
+
+    public static Soulmates globalSoulmates = new([], "None", -1);
 
     private void Awake()
     {
@@ -136,10 +84,8 @@ public partial class Plugin : BaseUnityPlugin
             Log.LogInfo("Soulmates disabled");
             return;
         }
-        PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
 
         Harmony harmony = new("com.github.Wesmania.Soulmates");
-
         try
         {
             harmony.PatchAll();
@@ -148,6 +94,7 @@ public partial class Plugin : BaseUnityPlugin
         {
             Log.LogError($"Failed to load mod: {ex}");
         }
+        SteamComms.Awake(OnEvent);
     }
 
     public static bool HasFixedSoulmates()
@@ -161,23 +108,8 @@ public partial class Plugin : BaseUnityPlugin
     private void OnDestroy()
     {
         if (!Enabled.Value) return;
-
-        if (PhotonNetwork.NetworkingClient != null)
-        {
-            PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
-        }
+        SteamComms.OnDestroy();
     }
-
-    public static int GetSoulmateGroupSize()
-    {
-        return previousSoulmates.HasValue ? previousSoulmates.Value.config.soulmateGroupSize : SoulmateGroupSize.Value;
-    }
-    public static float GetSoulmateStrength()
-    {
-        return previousSoulmates.HasValue ? previousSoulmates.Value.config.soulmateStrength : SoulmateStrength.Value;
-    }
-
-
     public static bool localCharIsReady()
     {
         Character localChar = Character.localCharacter;
@@ -187,62 +119,45 @@ public partial class Plugin : BaseUnityPlugin
         }
         return true;
     }
-    public static string indexToNick(int idx)
+    private void OnEvent(Pid sender, SoulmateEventType eventType, string json)
     {
-        var s = PhotonNetwork.PlayerList.ToList().Find(p => p.ActorNumber == idx);
-        if (s == null) return "";
-        return s.NickName;
-    }
-    public static RecalculateSoulmatesEvent? previousSoulmates;
-
-    private void OnEvent(EventData photonEvent)
-    {
-        if (photonEvent.Code != SHARED_DAMAGE_EVENT_CODE)
-        {
-            return;
-        }
-
-        object[] data = (object[])photonEvent.CustomData;
-        int eventType = (int)data[0];
         switch (eventType)
         {
-            case (int)SoulmateEventType.RECALCULATE:
-                OnRecalculateSoulmateEvent(photonEvent);
+            case SoulmateEventType.RECALCULATE:
+                OnRecalculateSoulmateEvent(sender, json);
                 break;
-            case (int)SoulmateEventType.DAMAGE:
-                OnSharedDamageEvent(photonEvent);
+            case SoulmateEventType.DAMAGE:
+                OnSharedDamageEvent(sender, json);
                 break;
-            case (int)SoulmateEventType.UPDATE_WEIGHT:
-                Weight.OnUpdateWeightEvent(photonEvent);
+            case SoulmateEventType.UPDATE_WEIGHT:
+                Weight.OnUpdateWeightEvent(sender, json);
                 break;
-            case (int)SoulmateEventType.SHARED_BONK:
-                Bonk.OnSharedBonkEvent(photonEvent);
+            case SoulmateEventType.SHARED_BONK:
+                Bonk.OnSharedBonkEvent(sender, json);
                 break;
-            case (int)SoulmateEventType.SHARED_EXTRA_STAMINA:
-                StamUtil.OnSharedExtraStaminaEvent(photonEvent);
+            case SoulmateEventType.SHARED_EXTRA_STAMINA:
+                StamUtil.OnSharedExtraStaminaEvent(sender, json);
                 break;
-            case (int)SoulmateEventType.SHARED_AFFLICTION:
-                AfflictionUtil.onSharedAfflictionEvent(photonEvent);
+            case SoulmateEventType.SHARED_AFFLICTION:
+                AfflictionUtil.onSharedAfflictionEvent(sender, json);
                 break;
-            case (int)SoulmateEventType.WHO_IS_MY_SOULMATES:
-                TellMeMySoulmate.OnWhoIsMySoulmate(photonEvent);
+            case SoulmateEventType.WHO_IS_MY_SOULMATES:
+                TellMeMySoulmate.OnWhoIsMySoulmate(sender, json);
                 break;
             default:
                 return;
         }
     }
-    private void OnSharedDamageEvent(EventData photonEvent)
+    private void OnSharedDamageEvent(Pid sender, string json)
     {
-        object[] data = (object[])photonEvent.CustomData;
-        var damage = SharedDamage.Deserialize((string)data[1]);
-        int senderActorNumber = photonEvent.Sender;
+        var damage = SharedDamage.Deserialize(json);
 
         if (!localCharIsReady())
         {
             return;
         }
         Character localChar = Character.localCharacter;
-        if (!Soulmates.ActorIsSoulmate(senderActorNumber))
+        if (globalSoulmates == null || !globalSoulmates.PidIsSoulmate(sender))
         {
             return;
         }
@@ -260,7 +175,7 @@ public partial class Plugin : BaseUnityPlugin
 
         SharedDamagePatch.isReceivingSharedDamage.Add(localChar.photonView.ViewID);
         var affs = localChar.refs.afflictions;
-        damage.value *= GetSoulmateStrength();
+        damage.value *= SoulmateProtocol.instance.GetSoulmateStrength();
         try
         {
             switch (damage.kind)
@@ -283,162 +198,19 @@ public partial class Plugin : BaseUnityPlugin
             SharedDamagePatch.isReceivingSharedDamage.Remove(localChar.photonView.ViewID);
         }
     }
-
-    private static HashSet<string> findSoulmates(List<int> soulmates)
+    public static Character? GetSoulmate(Pid actor)
     {
-        var groupSize = GetSoulmateGroupSize();
-        Soulmates.soulmateSets = soulmates.Select((id, idx) => (id, idx / groupSize))
-                                          .ToDictionary(p => indexToNick(p.Item1), p => p.Item2);
-
-        var my_actor = PhotonNetwork.LocalPlayer.ActorNumber;
-        var pos = soulmates.FindIndex(x => x == my_actor);
-        if (pos == -1)
-        {
-            Log.LogInfo($"Did not find myself ({my_actor}) on soulmate list!");
-            return [];
-        }
-        Log.LogInfo($"Found my index: {pos}");
-        var soulmatesBase = pos - (pos % groupSize);
-        var soulmateIndices = Enumerable.Range(soulmatesBase, groupSize)
-                                        .Where(i => i != pos && i < soulmates.Count).ToList();
-        Log.LogInfo(String.Format($"Soulmate group size: {soulmateIndices.Count + 1}"));
-        return soulmateIndices.Select(i => indexToNick(soulmates[i])).ToHashSet();
+        return SteamComms.IdToCharacter(actor);
     }
 
-    public static Character? GetSoulmate(int actor)
-    {
-        try
-        {
-            return Character.AllCharacters.Find(c => c.photonView.Owner.ActorNumber == actor);
-        }
-        catch (Exception)
-        {
-            return null;
-        }
-    }
-    private static void ConnectToNewSoulmate(RecalculateSoulmatesEvent e)
-    {
-        if (!localCharIsReady())
-        {
-            return;
-        }
-
-        Character localChar = Character.localCharacter;
-        var my_number = localChar.photonView.Owner.ActorNumber;
-
-        localChar.refs.afflictions.UpdateWeight();
-    }
-
-    private static void OnRecalculateSoulmateEvent(EventData photonEvent)
+    private static void OnRecalculateSoulmateEvent(Pid sender, string json)
     {
         Log.LogInfo("Received recalculate soulmate event");
-        object[] data = (object[])photonEvent.CustomData;
-        var soulmates = RecalculateSoulmatesEvent.Deserialize((string)data[1]);
-
-        previousSoulmates = soulmates;
-
-        Soulmates.SetGlobalSoulmates(findSoulmates(soulmates.soulmates));
-
-        if (Soulmates.NoSoulmates())
-        {
-            Log.LogInfo("No soulmates");
-        }
-        else
-        {
-            Log.LogInfo($"New soulmates: {Soulmates.SoulmateLog()}");
-        }
-
-        if (soulmates.firstTime)
-        {
-            // Starting game. Clear data, do nothing else.
-            Weight.Clear();
-        }
-        else
-        {
-            ConnectToNewSoulmate(soulmates);
-        }
-
-        int delay;
-        if (soulmates.firstTime)
-        {
-            delay = 10;
-        }
-        else
-        {
-            // Some time after biome title card
-            delay = 15;
-        }
-        SoulmateTextPatch.SetSoulmateText(Soulmates.SoulmateText(), delay);
-    }
-
-    private static void ReorderForFixedPairings(ref List<int> actors)
-    {
-        var actorsWithNames = actors.ToDictionary(a => indexToNick(a));
-        var fixedPairs = GetFixedSoulmates();
-        if (fixedPairs.Count == 0) return;
-
-        if (!fixedPairs.All(l => l.Count == GetSoulmateGroupSize()))
-        {
-            Log.LogWarning("Fixed soulmate groups don't match soulmate group size! FIXME we should be able to handle this.");
-            return;
-        }
-        var fittingFixedPairs = fixedPairs.Where(l => l.All(s => actorsWithNames.ContainsKey(s)));
-        var fixedList = fittingFixedPairs.SelectMany(l => l.Select(s => actorsWithNames[s])).ToList();
-        var fixedSet = fixedList.ToHashSet();
-        if (fixedSet.Count < fixedList.Count)
-        {
-            Log.LogWarning("Fixed soulmate groups have repeating names!");
-            return;
-        }
-        var rest = actors.Where(a => !fixedSet.Contains(a));
-        actors = [.. fixedList, .. rest];
+        globalSoulmates = SoulmateProtocol.instance.OnNewSoulmates(json) ?? new Soulmates();
     }
 
     public static RecalculateSoulmatesEvent? RecalculateSoulmate(bool firstTime)
     {
-        Log.LogInfo("Recalculating soulmate");
-
-        Log.LogInfo(String.Format("Character count: {0}", PhotonNetwork.PlayerList.Count()));
-        var actors = PhotonNetwork.PlayerList.Select(x => x.ActorNumber).ToList();
-        actors.Sort();
-        var all = String.Join(" ", PhotonNetwork.PlayerList.Select(x => x.ToString()));
-        Log.LogInfo(($"Characters: {all}"));
-
-        if (!PhotonNetwork.IsMasterClient)
-        {
-            return null;
-        }
-        Log.LogInfo("I am master client, preparing new soulmate list");
-
-        actors.Shuffle();
-        ReorderForFixedPairings(ref actors);
-
-        RecalculateSoulmatesEvent soulmates;
-
-        soulmates.soulmates = actors;
-        soulmates.firstTime = firstTime;
-
-        if (firstTime)
-        {
-            previousSoulmates = null;
-        }
-        if (previousSoulmates.HasValue)
-        {
-            soulmates.config = previousSoulmates.Value.config;
-        }
-        else
-        {
-            soulmates.config.sharedBonk = EnableSharedBonk.Value;
-            soulmates.config.sharedSlip = EnableSharedSlip.Value;
-            soulmates.config.sharedExtraStaminaGain = EnableSharedExtraStaminaGain.Value;
-            soulmates.config.sharedExtraStaminaUse = EnableSharedExtraStaminaUse.Value;
-            soulmates.config.sharedLolli = EnableSharedLolli.Value;
-            soulmates.config.sharedEnergol = EnableSharedEnergol.Value;
-            soulmates.config.soulmateGroupSize = SoulmateGroupSize.Value;
-            soulmates.config.soulmateStrength = SoulmateStrength.Value;
-        }
-
-        // FIXME: make sure to ignore dead soulmates...
-        return soulmates;
+        return SoulmateProtocol.instance.PrepareNewSoulmates(firstTime);
     }
 }

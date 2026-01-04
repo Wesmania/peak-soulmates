@@ -64,23 +64,17 @@ public static class Events
 {
     private static void SendEvent(SoulmateEventType eventType, string e, ReceiverGroup who, bool reliable = false)
     {
-        object[] content = [(int)eventType, e];
-        RaiseEventOptions raiseEventOptions = new() { Receivers = who };
-        var r = reliable ? SendOptions.SendReliable : SendOptions.SendUnreliable;
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, r);
+        SteamComms.SendEvent(eventType, e, who, reliable);
     }
-    private static void SendEventTo(SoulmateEventType eventType, string e, int[] targets, bool reliable = false)
+    private static void SendEventTo(SoulmateEventType eventType, string e, Pid[] targets, bool reliable = false)
     {
-        object[] content = [(int)eventType, e];
-        RaiseEventOptions raiseEventOptions = new() { TargetActors = targets };
-        var r = reliable ? SendOptions.SendReliable : SendOptions.SendUnreliable;
-        PhotonNetwork.RaiseEvent(Plugin.SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, r);
+        SteamComms.SendEventTo(eventType, e, targets, reliable);
     }
     private static void SendToSoulmates(SoulmateEventType eventType, string e, bool reliable = false)
     {
-        if (Soulmates.NoSoulmates()) return;
+        if (Plugin.globalSoulmates.NoSoulmates()) return;
 
-        SendEventTo(eventType, e, Soulmates.SoulmateNumbers().ToArray(), reliable);
+        SendEventTo(eventType, e, Plugin.globalSoulmates.MySoulmatePids().ToArray(), reliable);
     }
     public static void SendRecalculateSoulmateEvent(RecalculateSoulmatesEvent e)
     {
@@ -130,9 +124,9 @@ public static class Events
     public static void SendWhoIsMySoulmatesEvent()
     {
         WhoIsMySoulmate w;
-        SendEvent(SoulmateEventType.WHO_IS_MY_SOULMATES, w.Serialize(), ReceiverGroup.Others, true);
+        SendEvent(SoulmateEventType.WHO_IS_MY_SOULMATES, w.Serialize(), ReceiverGroup.MasterClient, true);
     }
-    public static void SendThisIsYourSoulmatesEvent(RecalculateSoulmatesEvent e, int target)
+    public static void SendThisIsYourSoulmatesEvent(RecalculateSoulmatesEvent e, Pid target)
     {
         SendEventTo(SoulmateEventType.RECALCULATE, e.Serialize(), [target], true);
     }

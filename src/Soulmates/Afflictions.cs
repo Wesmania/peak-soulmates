@@ -8,29 +8,19 @@ static class AfflictionUtil
 {
     public static bool sharedLolli()
     {
-        return Plugin.previousSoulmates.HasValue && Plugin.previousSoulmates.Value.config.sharedLolli;
+        return SoulmateProtocol.instance.previousSoulmates.HasValue && SoulmateProtocol.instance.previousSoulmates.Value.config.sharedLolli;
     }
     public static bool sharedEnergol()
     {
-        return Plugin.previousSoulmates.HasValue && Plugin.previousSoulmates.Value.config.sharedEnergol;
+        return SoulmateProtocol.instance.previousSoulmates.HasValue && SoulmateProtocol.instance.previousSoulmates.Value.config.sharedEnergol;
     }
-    public static void onSharedAfflictionEvent(EventData photonEvent)
+    public static void onSharedAfflictionEvent(Pid sender, string json)
     {
-        object[] data = (object[])photonEvent.CustomData;
-        var affliction = SharedAffliction.Deserialize((string)data[1]);
-        int senderActorNumber = photonEvent.Sender;
+        if (!Plugin.localCharIsReady()) return;
+        if (!Plugin.globalSoulmates.PidIsSoulmate(sender)) return;
 
-        if (!Plugin.localCharIsReady())
-        {
-            return;
-        }
-
+        var affliction = SharedAffliction.Deserialize(json);
         Character localChar = Character.localCharacter;
-        if (!Soulmates.ActorIsSoulmate(senderActorNumber))
-        {
-            return;
-        }
-
         Affliction a = Affliction.CreateBlankAffliction(affliction.type);
         a.totalTime = affliction.totalTime;
         AfflictionPatch.skipMessage = true;

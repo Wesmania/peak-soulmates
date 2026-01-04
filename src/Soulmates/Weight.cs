@@ -6,7 +6,7 @@ namespace Soulmates;
 
 public static class Weight
 {
-    private static Dictionary<int, UpdateWeight> playerWeights = new Dictionary<int, UpdateWeight>();
+    private static Dictionary<Pid, UpdateWeight> playerWeights = [];
     public static bool shouldSendWeight;
 
     public static void Clear()
@@ -17,12 +17,7 @@ public static class Weight
     // Returns true is weight has to be propagated.
     private static bool updateLocalWeightAndCheckIfChanged(UpdateWeight w)
     {
-        Character localChar = Character.localCharacter;
-        if (localChar == null)
-        {
-            return false;
-        }
-        int id = localChar.photonView.Owner.ActorNumber;
+        Pid id = SteamComms.MyNumber();
         if (!playerWeights.ContainsKey(id))
         {
             playerWeights[id] = w;
@@ -39,12 +34,7 @@ public static class Weight
         w.weight = 0.0f;
         w.thorns = 0.0f;
 
-        Character localChar = Character.localCharacter;
-        if (localChar == null)
-        {
-            return w;
-        }
-        int id = localChar.photonView.Owner.ActorNumber;
+        Pid id = SteamComms.MyNumber();
         if (!playerWeights.ContainsKey(id))
         {
             return w;
@@ -52,15 +42,13 @@ public static class Weight
         return playerWeights[id];
     }
 
-    public static void OnUpdateWeightEvent(EventData photonEvent)
+    public static void OnUpdateWeightEvent(Pid sender, string json)
     {
-        object[] data = (object[])photonEvent.CustomData;
-        var weight = UpdateWeight.Deserialize((string)data[1]);
-        int senderActorNumber = photonEvent.Sender;
+        var weight = UpdateWeight.Deserialize(json);
+        playerWeights[sender] = weight;
+        if (sender == SteamComms.MyNumber()) return;
 
-        playerWeights[senderActorNumber] = weight;
-
-        if (Soulmates.ActorIsSoulmate(senderActorNumber))
+        if (Plugin.globalSoulmates.PidIsSoulmate(sender))
         {
             if (Plugin.localCharIsReady())
             {
@@ -80,7 +68,7 @@ public static class Weight
         Character localChar = Character.localCharacter;
         var affs = localChar.refs.afflictions;
 
-        var allSoulmates = Soulmates.SoulmateCharacters();
+        var allSoulmates = Plugin.globalSoulmates.MySoulmateCharacters();
         float soulmateCount = allSoulmates.Count;
 
         UpdateWeight soulmateWeights;
@@ -88,19 +76,19 @@ public static class Weight
         soulmateWeights.thorns = 0;
 
         foreach (var soulmate in allSoulmates) {
-            if (!soulmate.isLiv())
+            if (!soulmate.c.isLiv())
             {
                 continue; // Sanity check: don't share status of dead people
             }
-            if (!playerWeights.ContainsKey(soulmate.photonView.Owner.ActorNumber))
+            if (!playerWeights.ContainsKey(soulmate.p.id))
             {
                 continue;
             }
-            soulmateWeights.weight += playerWeights[soulmate.photonView.Owner.ActorNumber].weight;
-            soulmateWeights.thorns += playerWeights[soulmate.photonView.Owner.ActorNumber].thorns;
+            soulmateWeights.weight += playerWeights[soulmate.p.id].weight;
+            soulmateWeights.thorns += playerWeights[soulmate.p.id].thorns;
         }
 
-        float coeff = Plugin.GetSoulmateStrength();
+        float coeff = SoulmateProtocol.instance.GetSoulmateStrength();
 
         original.weight = (original.weight + soulmateWeights.weight * coeff) / (coeff * soulmateCount + 1);
         original.thorns += soulmateWeights.thorns * coeff;    // Thorns are cumulative
