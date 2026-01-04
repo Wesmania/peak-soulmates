@@ -7,40 +7,31 @@ static class StamUtil
 {
     public static float SingleStaminaMult()
     {
-        return Plugin.GetSoulmateStrength();
+        return SoulmateProtocol.instance.GetSoulmateStrength();
     }
 
     public static bool sharedExtraStaminaUse()
     {
-        return Plugin.previousSoulmates.HasValue && Plugin.previousSoulmates.Value.config.sharedExtraStaminaUse;
+        return SoulmateProtocol.instance.previousSoulmates.HasValue && SoulmateProtocol.instance.previousSoulmates.Value.config.sharedExtraStaminaUse;
     }
 
     public static bool sharedExtraStaminaGain()
     {
-        return Plugin.previousSoulmates.HasValue && Plugin.previousSoulmates.Value.config.sharedExtraStaminaGain;
+        return SoulmateProtocol.instance.previousSoulmates.HasValue && SoulmateProtocol.instance.previousSoulmates.Value.config.sharedExtraStaminaGain;
     }
     public static bool onlySharesGain()
     {
         return sharedExtraStaminaGain() && !sharedExtraStaminaUse();
     }
 
-    public static void OnSharedExtraStaminaEvent(EventData photonEvent)
+    public static void OnSharedExtraStaminaEvent(Pid sender, string json)
     {
-        object[] data = (object[])photonEvent.CustomData;
-        var stamina = SharedExtraStamina.Deserialize((string)data[1]);
-        int senderActorNumber = photonEvent.Sender;
+        var stamina = SharedExtraStamina.Deserialize(json);
 
-        if (!Plugin.localCharIsReady())
-        {
-            return;
-        }
+        if (!Plugin.localCharIsReady()) return;
+        if (!Plugin.globalSoulmates.PidIsSoulmate(sender)) return;
 
         Character localChar = Character.localCharacter;
-        if (!Soulmates.ActorIsSoulmate(senderActorNumber))
-        {
-            return;
-        }
-
         StaminaPatch.skipMessage += 1;
         localChar.AddExtraStamina(stamina.diff * SingleStaminaMult());
         StaminaPatch.skipMessage -= 1;
@@ -48,16 +39,16 @@ static class StamUtil
 
     public static float MyStaminaGain()
     {
-        var strength = Plugin.GetSoulmateStrength();
-        var count = Plugin.GetSoulmateGroupSize();
+        var strength = SoulmateProtocol.instance.GetSoulmateStrength();
+        var count = SoulmateProtocol.instance.GetSoulmateGroupSize();
 
         var total = 1 + strength * (count - 1);
         return 1 / total;
     }
     public static float TheirStaminaGain()
     {
-        var strength = Plugin.GetSoulmateStrength();
-        var count = Plugin.GetSoulmateGroupSize();
+        var strength = SoulmateProtocol.instance.GetSoulmateStrength();
+        var count = SoulmateProtocol.instance.GetSoulmateGroupSize();
 
         var total = 1 + strength * (count - 1);
         return strength / total;
@@ -101,7 +92,7 @@ public static class StaminaPatch
             }
             else
             {
-                diff *= Plugin.GetSoulmateStrength();
+                diff *= SoulmateProtocol.instance.GetSoulmateStrength();
             }
         }
 
@@ -109,7 +100,7 @@ public static class StaminaPatch
         {
             // We share gain and loss, so stamina is fully shared.
             // Burn everyone else's stamina multiplied by strength.
-            diff *= Plugin.GetSoulmateStrength();
+            diff *= SoulmateProtocol.instance.GetSoulmateStrength();
         }
 
         SharedExtraStamina e;
@@ -154,7 +145,7 @@ public static class StaminaPatch
             __instance.AddExtraStamina(real_val - diff);
             skipMessage -= 1;
         }
-        // Unreduced value, we reduce it here
+        // Unreduced value, we reduce it on the other side
         SendStaminaDiff(__instance, diff);
     }
 
@@ -182,5 +173,3 @@ public static class StaminaPatch
         SendStaminaDiff(__instance, __state);
     }
 }
-
-// AddAffliction for lollipops and energy drinks

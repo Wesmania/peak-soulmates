@@ -39,5 +39,9 @@
 		<HintPath>/mnt/dane/gentoo-home/igor/.local/share/Steam/steamapps/common/PEAK/BepInEx/core/BepInEx.dll</HintPath>
             <Private>False</Private>
         </Reference>
+        <Reference Include="NetworkingLibrary">
+		<HintPath>/mnt/dane/gentoo-home/igor/.local/share/Steam/steamapps/common/PEAK/BepInEx/plugins/off_grid.NetworkingLibrary.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
     </ItemGroup>
 </Project>

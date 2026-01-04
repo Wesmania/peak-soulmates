@@ -6,16 +6,14 @@ namespace Soulmates;
 
 class TellMeMySoulmate
 {
-    public static void OnWhoIsMySoulmate(EventData photonEvent)
+    public static void OnWhoIsMySoulmate(Pid sender, string json)
     {
-        object[] data = (object[])photonEvent.CustomData;
-        var damage = WhoIsMySoulmate.Deserialize((string)data[1]);
-        int senderActorNumber = photonEvent.Sender;
+        var damage = WhoIsMySoulmate.Deserialize(json);
 
         if (!PhotonNetwork.IsMasterClient) return;
-        if (!Plugin.previousSoulmates.HasValue) return;
+        if (!SoulmateProtocol.instance.previousSoulmates.HasValue) return;
 
-        Events.SendThisIsYourSoulmatesEvent(Plugin.previousSoulmates.Value, senderActorNumber);
+        Events.SendThisIsYourSoulmatesEvent(SoulmateProtocol.instance.previousSoulmates.Value, sender);
     }
 }
 
@@ -26,7 +24,7 @@ class WhoIsMySoulmatePatch
     [HarmonyPatch("OnJoinedRoom")]
     public static void OnJoinedRoomPostfix(ReconnectHandler __instance)
     {
-        if (!Plugin.previousSoulmates.HasValue)
+        if (!SoulmateProtocol.instance.previousSoulmates.HasValue)
         {
             Events.SendWhoIsMySoulmatesEvent();
         }
