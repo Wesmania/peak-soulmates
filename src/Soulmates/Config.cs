@@ -70,7 +70,6 @@ public class ModConfig
             soulmateStrength = CSoulmateStrength.Value
         };
     }
-
     public int SoulmateGroupSize()
     {
         if (!ReceivedConfig.HasValue)

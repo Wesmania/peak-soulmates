@@ -131,6 +131,7 @@ public class SteamComms
         }
     }
 
+    [CustomRPC]
     private static void HandleEvent(Pid sender, SoulmateEventType eventType, string e)
     {
         instance.eventHandle?.Invoke(sender, eventType, e);
