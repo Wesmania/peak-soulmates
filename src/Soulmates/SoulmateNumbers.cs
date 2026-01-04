@@ -86,13 +86,14 @@ public class SoulmateProtocol
     {
         Plugin.Log.LogInfo("Received recalculate soulmate event");
         var soulmates = RecalculateSoulmatesEvent.Deserialize(json);
-        var newSoulmates = findSoulmates(soulmates.soulmates);
         Plugin.config.SetReceivedConfig(soulmates.config);
+        var newSoulmates = findSoulmates(soulmates.soulmates);
 
         if (newSoulmates == null)
         {
             Plugin.Log.LogWarning("Failed to processs new soulmates!");
             previousSoulmates = null;
+            Plugin.config.ClearReceivedConfig();
             return null;
         }
         previousSoulmates = soulmates;
@@ -185,7 +186,7 @@ public class SoulmateProtocol
         nicks.Sort();
 
         var all = String.Join(" ", nicks);
-        Plugin.Log.LogInfo(($"Character count: {all.Count()}, Characters: {all}"));
+        Plugin.Log.LogInfo(($"Character count: {nicks.Count()}, Characters: {all}"));
 
         ids.Shuffle();
         ReorderForFixedPairings(ref actors);
