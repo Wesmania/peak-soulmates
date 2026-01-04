@@ -16,7 +16,7 @@ static class AfflictionUtil
     }
     public static void onSharedAfflictionEvent(Pid sender, string json)
     {
-        if (!Plugin.localCharIsReady()) return;
+        if (!Plugin.LocalCharIsReady()) return;
         if (!Plugin.globalSoulmates.PidIsSoulmate(sender)) return;
 
         var affliction = SharedAffliction.Deserialize(json);

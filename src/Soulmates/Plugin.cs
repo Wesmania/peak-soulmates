@@ -37,49 +37,16 @@ public static class Extensions
 public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log { get; private set; } = null!;
-    internal static ConfigEntry<bool> Enabled { get; private set; } = null!;
-    internal static ConfigEntry<int> SoulmateGroupSize { get; private set; } = null!;
-    internal static ConfigEntry<float> SoulmateStrength { get; private set; } = null!;
-    internal static ConfigEntry<string> FixedSoulmates { get; private set; } = null!;
-    internal static ConfigEntry<bool> EnableSharedBonk { get; private set; } = null!;
-    internal static ConfigEntry<bool> EnableSharedSlip { get; private set; } = null!;
-    internal static ConfigEntry<bool> EnableSharedExtraStaminaGain { get; private set; } = null!;
-    internal static ConfigEntry<bool> EnableSharedExtraStaminaUse { get; private set; } = null!;
-    internal static ConfigEntry<bool> EnableSharedLolli { get; private set; } = null!;
-    internal static ConfigEntry<bool> EnableSharedEnergol { get; private set; } = null!;
-
-    internal const byte SHARED_DAMAGE_EVENT_CODE = 198;
-
     public static Soulmates globalSoulmates = new([], "None", -1);
+    public static ModConfig config = new();
 
     private void Awake()
     {
         Log = Logger;
         Log.LogInfo($"Plugin {Name} version 0.2.10 is loaded!");
 
-        Enabled = Config.Bind("Config", "Enabled", true, "Enable/disable the mod with this");
-        SoulmateGroupSize = Config.Bind("Config", "SoulmateGroupSize", 2, "How many people are bound in one group. Defaults to 2.");
-        SoulmateStrength = Config.Bind("Config", "SoulmateStrength", 1.0f, "How much of soulmate's status is applied to you");
-        FixedSoulmates = Config.Bind("Config", "FixedSoulmates", "", "Fixed soulmate assignments, matched by nick. Format is \"name1,name2;name3,name4\".\nThis will match name1 with name2 and name3 with name4.");
-        EnableSharedBonk = Config.Bind("Config", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
-        EnableSharedSlip = Config.Bind("Config", "EnableSharedSlip", true, "Slipping on something makes the soulmate slip too");
-        EnableSharedExtraStaminaGain = Config.Bind("Config",
-                                                   "EnableSharedExtraStaminaGain",
-                                                   true,
-                                                   "Soulmates share extra stamina gained");
-        EnableSharedExtraStaminaUse = Config.Bind("Config",
-                                                  "EnableSharedExtraStaminaUse",
-                                                  true,
-                                                  "Soulmates use a single extra stamina pool");
-        EnableSharedLolli = Config.Bind("Config",
-                                        "EnableSharedLolli",
-                                        true,
-                                        "Soulmates share lollipop boost");
-        EnableSharedEnergol = Config.Bind("Config",
-                                        "EnableSharedEnergol",
-                                        true,
-                                        "Soulmates share energy drink boost");
-        if (!Enabled.Value)
+        config = new(Config); 
+        if (config.Enabled())
         {
             Log.LogInfo("Soulmates disabled");
             return;
@@ -97,20 +64,12 @@ public partial class Plugin : BaseUnityPlugin
         SteamComms.Awake(OnEvent);
     }
 
-    public static bool HasFixedSoulmates()
-    {
-        return FixedSoulmates.Value != "";
-    }
-    public static List<List<string>> GetFixedSoulmates()
-    {
-        return FixedSoulmates.Value.Split(";").ToList().Select(s => s.Split(",").ToList()).ToList();
-    }
     private void OnDestroy()
     {
-        if (!Enabled.Value) return;
+        if (!config.Enabled()) return;
         SteamComms.OnDestroy();
     }
-    public static bool localCharIsReady()
+    public static bool LocalCharIsReady()
     {
         Character localChar = Character.localCharacter;
         if (localChar == null || !localChar.isLiv())
@@ -152,7 +111,7 @@ public partial class Plugin : BaseUnityPlugin
     {
         var damage = SharedDamage.Deserialize(json);
 
-        if (!localCharIsReady())
+        if (!LocalCharIsReady())
         {
             return;
         }
@@ -175,7 +134,7 @@ public partial class Plugin : BaseUnityPlugin
 
         SharedDamagePatch.isReceivingSharedDamage.Add(localChar.photonView.ViewID);
         var affs = localChar.refs.afflictions;
-        damage.value *= SoulmateProtocol.instance.GetSoulmateStrength();
+        damage.value *= config.SoulmateStrength();
         try
         {
             switch (damage.kind)

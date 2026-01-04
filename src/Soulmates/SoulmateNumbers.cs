@@ -26,7 +26,6 @@ public class Soulmates
     {
         return soulmatesByGroup.ContainsKey(myGroup) ? [.. soulmatesByGroup[myGroup].Where(n => n != myName)] : [];
     }
-
     public HashSet<Pid> MySoulmatePids()
     {
         var my = MySoulmates();
@@ -37,7 +36,10 @@ public class Soulmates
     {
         return [.. SteamComms.NicksToInfos(MySoulmates())];
     }
-        
+    public int? NickToSoulmateGroup(string nick)
+    {
+        return soulmatesByName.ContainsKey(nick) ? soulmatesByName[nick] : null;
+    }
     public bool PidIsSoulmate(Pid id)
     {
         return MySoulmatePids().Contains(id);
@@ -50,7 +52,6 @@ public class Soulmates
     {
         return String.Join(", ", MySoulmates());
     }
-
     public string SoulmateText()
     {
         var mySoulmates = this.MySoulmates();
@@ -75,40 +76,26 @@ public class Soulmates
             return c != null && c.isLiv();
         });
     }
-
-    public List<Character> SoulmateCharacters()
-    {
-        return MySoulmatePids().Select(n => SteamComms.IdToCharacter(n)).Where(c => c != null).ToList()!;
-    }
 }
 
 public class SoulmateProtocol
 {
-    public RecalculateSoulmatesEvent? previousSoulmates;
-
     public static SoulmateProtocol instance = new();
-
-    public int GetSoulmateGroupSize()
-    {
-        return previousSoulmates.HasValue ? previousSoulmates.Value.config.soulmateGroupSize : Plugin.SoulmateGroupSize.Value;
-    }
-    public float GetSoulmateStrength()
-    {
-        return previousSoulmates.HasValue ? previousSoulmates.Value.config.soulmateStrength : Plugin.SoulmateStrength.Value;
-    }
-
+    public RecalculateSoulmatesEvent? previousSoulmates = null;
     public Soulmates? OnNewSoulmates(string json)
     {
         Plugin.Log.LogInfo("Received recalculate soulmate event");
         var soulmates = RecalculateSoulmatesEvent.Deserialize(json);
         var newSoulmates = findSoulmates(soulmates.soulmates);
-        previousSoulmates = soulmates;
+        Plugin.config.SetReceivedConfig(soulmates.config);
 
         if (newSoulmates == null)
         {
             Plugin.Log.LogWarning("Failed to processs new soulmates!");
+            previousSoulmates = null;
             return null;
         }
+        previousSoulmates = soulmates;
 
         if (newSoulmates.NoSoulmates())
         {
@@ -136,13 +123,13 @@ public class SoulmateProtocol
 
     private static void ConnectToNewSoulmate(RecalculateSoulmatesEvent e)
     {
-        if (!Plugin.localCharIsReady()) return;
+        if (!Plugin.LocalCharIsReady()) return;
         Character localChar = Character.localCharacter;
         localChar.refs.afflictions.UpdateWeight();
     }
     private Soulmates? findSoulmates(List<Pid> soulmates)
     {
-        var groupSize = GetSoulmateGroupSize();
+        var groupSize = Plugin.config.SoulmateGroupSize();
         var soulmateSets = soulmates.Select((id, idx) => (idx / groupSize, SteamComms.IdToNick(id)))
                                     .Where(p => p.Item2 != null)
                                     .Select(p => (p.Item1, p.Item2!))
@@ -165,8 +152,9 @@ public class SoulmateProtocol
 
     private static void ReorderForFixedPairings(ref List<int> actors)
     {
+	if (!Plugin.config.HasFixedSoulmates()) return;
         var actorsWithNames = actors.ToDictionary(a => indexToNick(a));
-        var fixedPairs = GetFixedSoulmates();
+        var fixedPairs = Plugin.config.GetFixedSoulmates();
         if (fixedPairs.Count == 0) return;
 
         if (!fixedPairs.All(l => l.Count == GetSoulmateGroupSize()))
@@ -209,24 +197,10 @@ public class SoulmateProtocol
 
         if (firstTime)
         {
+            Plugin.config.ClearReceivedConfig();
             previousSoulmates = null;
         }
-        if (previousSoulmates.HasValue)
-        {
-            soulmates.config = previousSoulmates.Value.config;
-        }
-        else
-        {
-            soulmates.config.sharedBonk = Plugin.EnableSharedBonk.Value;
-            soulmates.config.sharedSlip = Plugin.EnableSharedSlip.Value;
-            soulmates.config.sharedExtraStaminaGain = Plugin.EnableSharedExtraStaminaGain.Value;
-            soulmates.config.sharedExtraStaminaUse = Plugin.EnableSharedExtraStaminaUse.Value;
-            soulmates.config.sharedLolli = Plugin.EnableSharedLolli.Value;
-            soulmates.config.sharedEnergol = Plugin.EnableSharedEnergol.Value;
-            soulmates.config.soulmateGroupSize = Plugin.SoulmateGroupSize.Value;
-            soulmates.config.soulmateStrength = Plugin.SoulmateStrength.Value;
-        }
-
+        soulmates.config = Plugin.config.GetConfigToSend();
         // FIXME: make sure to ignore dead soulmates...
         return soulmates;
     }
