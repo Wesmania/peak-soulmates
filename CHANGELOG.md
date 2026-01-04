@@ -77,3 +77,10 @@ First kind of working version
 * Change most Photon messages to unreliable. This might help with some players
   lagging a lot.
 * New mod icon. Thank you, /v/!
+
+## V0.3.0
+
+* Convert mod to use Steam networking instead of Photon, by using
+  PEAKNetworkingLibrary. This might help with some players lagging.
+* **THIS IS A BACKWARDS INCOMPATIBLE CHANGE. MAKE SURE ALL PLAYERS USE THE SAME
+  MOD VERSION.**
