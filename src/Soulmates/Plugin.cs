@@ -46,7 +46,7 @@ public partial class Plugin : BaseUnityPlugin
         Log.LogInfo($"Plugin {Name} version 0.2.10 is loaded!");
 
         config = new(Config); 
-        if (config.Enabled())
+        if (!config.Enabled())
         {
             Log.LogInfo("Soulmates disabled");
             return;
