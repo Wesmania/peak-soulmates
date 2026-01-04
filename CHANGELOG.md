@@ -86,3 +86,8 @@ First kind of working version
 
 * Add option to set fixed soulmate pairings. Check the README.
 * Calculate hunger ticks locally instead of sending messages. Should help with lag.
+
+## V0.3.0
+
+* Various big internal refactors.
+* Prepare for future conversion to Steam networking.

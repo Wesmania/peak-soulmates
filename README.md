@@ -25,12 +25,17 @@ Implemented, but maybe buggy:
 
 ## Planned features
 
-* Logo that's not a half-assed "shared damage" ripoff.
 * Fix bugs.
+* Add more things from Roots update.
 
 ## Installation
 
-1. Extract the mod folder into `BepInEx/plugins`
+Using Thunderstore should "just work".
+
+## Manual installation
+
+1. Install the [PEAKNetworkingLibrary](https://thunderstore.io/c/peak/p/DAa/PEAKNetworkingLibrary/) mod.
+1. Download and extract this mod into `BepInEx/plugins`.
 
 ## Configuration
 
@@ -47,4 +52,9 @@ You can set fixed pairings of soulmates in the configuration. Check the "FixedSo
 
 ## Multiplayer Compatibility
 
-This mod uses custom network events. Because of this it's best that all players in the lobby have the mod installed. If some players don't have the mod, weird and bad things will probably happen.
+This mod uses custom network events. Because of this it's best that all players
+in the lobby have the mod installed. If some players don't have the mod, weird
+and bad things will probably happen.
+
+From version 0.3.0, the mod uses Steam networking instead of Photon. **Bad
+things might happen if you mix-and-match versions before and after 0.3.0.**
