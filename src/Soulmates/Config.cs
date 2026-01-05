@@ -14,6 +14,12 @@ public class ModConfig
     ConfigEntry<bool> CEnableSharedExtraStaminaUse { get; set; } = null!;
     ConfigEntry<bool> CEnableSharedLolli { get; set; } = null!;
     ConfigEntry<bool> CEnableSharedEnergol { get; set; } = null!;
+    ConfigEntry<bool> CEnableSharedBlindness { get; set; } = null!;
+    ConfigEntry<bool> CEnableSharedFloating { get; set; } = null!;
+    ConfigEntry<bool> CEnableSharedMilk { get; set; } = null!;
+    ConfigEntry<bool> CEnableSharedParalysis { get; set; } = null!;
+    ConfigEntry<bool> CEnableSharedFarts { get; set; } = null!;
+    ConfigEntry<bool> CEnableSharedSporedMeter { get; set; } = null!;
 
     public Config? ReceivedConfig { get; private set; } = null;
 
@@ -42,6 +48,30 @@ public class ModConfig
                                         "EnableSharedEnergol",
                                         true,
                                         "Soulmates share energy drink boost");
+        CEnableSharedBlindness = pluginConfig.Bind("Config",
+                                        "EnableSharedBlindness",
+                                        true,
+                                        "Soulmates share blind status");
+        CEnableSharedFloating = pluginConfig.Bind("Config",
+                                        "EnableSharedFloating",
+                                        true,
+                                        "Soulmates share the floating mushroom effect");
+        CEnableSharedMilk = pluginConfig.Bind("Config",
+                                        "EnableSharedMilk",
+                                        true,
+                                        "Soulmates share invincibility from milk and mushrooms");
+        CEnableSharedParalysis = pluginConfig.Bind("Config",
+                                        "EnableSharedParalysis",
+                                        true,
+                                        "Soulmates share mushroom paralysis");
+        CEnableSharedFarts = pluginConfig.Bind("Config",
+                                        "EnableSharedFarts",
+                                        true,
+                                        "Soulmates share mushroom indigestion");
+        CEnableSharedSporedMeter = pluginConfig.Bind("Config",
+                                        "EnableSharedSporedMeter",
+                                        true,
+                                        "Soulmates share stamina meter sporification");
     }
 
     public bool Enabled() => CEnabled.Value;
@@ -68,6 +98,12 @@ public class ModConfig
             sharedExtraStaminaUse = CEnableSharedExtraStaminaUse.Value,
             sharedLolli = CEnableSharedLolli.Value,
             sharedEnergol = CEnableSharedEnergol.Value,
+            sharedBlindness = CEnableSharedBlindness.Value,
+            sharedFloating = CEnableSharedFloating.Value,
+            sharedMilk = CEnableSharedMilk.Value,
+            sharedParalysis = CEnableSharedParalysis.Value,
+            sharedFarts = CEnableSharedFarts.Value,
+            sharedSporedMeter = CEnableSharedSporedMeter.Value,
             soulmateGroupSize = CSoulmateGroupSize.Value,
             soulmateStrength = CSoulmateStrength.Value
         };
@@ -102,6 +138,12 @@ public class ModConfig
     public bool SharedExtraStaminaUse() => ReceivedConfig.HasValue && ReceivedConfig.Value.sharedExtraStaminaUse;
     public bool SharedLolli() => ReceivedConfig.HasValue && ReceivedConfig.Value.sharedLolli;
     public bool SharedEnergol() => ReceivedConfig.HasValue && ReceivedConfig.Value.sharedEnergol;
+    public bool SharedBlindness() => ReceivedConfig.HasValue && ReceivedConfig.Value.sharedBlindness;
+    public bool SharedFloating() => ReceivedConfig.HasValue && ReceivedConfig.Value.sharedFloating;
+    public bool SharedMilk() => ReceivedConfig.HasValue && ReceivedConfig.Value.sharedMilk;
+    public bool SharedParalysis() => ReceivedConfig.HasValue && ReceivedConfig.Value.sharedParalysis;
+    public bool SharedFarts() => ReceivedConfig.HasValue && ReceivedConfig.Value.sharedFarts;
+    public bool SharedSporedMeter() => ReceivedConfig.HasValue && ReceivedConfig.Value.sharedSporedMeter;
 
     public bool HasFixedSoulmates()
     {

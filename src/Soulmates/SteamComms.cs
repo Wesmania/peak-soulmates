@@ -32,11 +32,12 @@ public class SteamComms
     public static void Awake(Action<Pid, SoulmateEventType, string> handle)
     {
         instance.eventHandle = handle;
-        SteamNetworkingService? s = (SteamNetworkingService) Service;
+        SteamNetworkingService? s = (SteamNetworkingService)Service;
         s?.SetSharedSecret(null);
         Service.RegisterNetworkType(typeof(SteamComms), MOD_ID);
     }
-    public static void OnDestroy() {
+    public static void OnDestroy()
+    {
         Service.DeregisterNetworkType(typeof(SteamComms), MOD_ID);
     }
 
@@ -44,7 +45,8 @@ public class SteamComms
     {
         return Service.GetLocalSteam64();
     }
-    public static string MyNick() {
+    public static string MyNick()
+    {
         return SteamFriends.GetPersonaName();
     }
     public static bool IAmHost()

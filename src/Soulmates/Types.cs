@@ -17,6 +17,13 @@ public struct Config
     public bool sharedExtraStaminaUse;
     public bool sharedLolli;
     public bool sharedEnergol;
+    public bool sharedBlindness;
+    public bool sharedFloating;
+    public bool sharedMilk;
+    public bool sharedParalysis;
+    public bool sharedFarts;
+    public bool sharedSporedMeter;
+
     public int soulmateGroupSize;
     public float soulmateStrength;
 }
@@ -124,11 +131,18 @@ public struct SharedExtraStamina
     }
 }
 
+public enum OtherAfflictions
+{
+    PARALYSIS,
+    INDIGESTION,
+}
+
 public struct SharedAffliction
 {
-    public Affliction.AfflictionType type;
+    public Affliction.AfflictionType? type;
+    public OtherAfflictions? other_type;
     public float totalTime;
-    public string Serialize()
+    public readonly string Serialize()
     {
         return JsonConvert.SerializeObject(this);
     }

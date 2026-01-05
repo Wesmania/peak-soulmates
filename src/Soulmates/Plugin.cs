@@ -99,7 +99,7 @@ public partial class Plugin : BaseUnityPlugin
                 StamUtil.OnSharedExtraStaminaEvent(sender, json);
                 break;
             case SoulmateEventType.SHARED_AFFLICTION:
-                AfflictionUtil.onSharedAfflictionEvent(sender, json);
+                AfflictionUtil.OnSharedAfflictionEvent(sender, json);
                 break;
             case SoulmateEventType.WHO_IS_MY_SOULMATES:
                 TellMeMySoulmate.OnWhoIsMySoulmate(sender, json);
