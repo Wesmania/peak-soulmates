@@ -12,12 +12,12 @@ static class StamUtil
 
     public static bool sharedExtraStaminaUse()
     {
-        return SoulmateProtocol.instance.previousSoulmates.HasValue && SoulmateProtocol.instance.previousSoulmates.Value.config.sharedExtraStaminaUse;
+        return Plugin.config.SharedExtraStaminaUse();
     }
 
     public static bool sharedExtraStaminaGain()
     {
-        return SoulmateProtocol.instance.previousSoulmates.HasValue && SoulmateProtocol.instance.previousSoulmates.Value.config.sharedExtraStaminaGain;
+        return Plugin.config.SharedExtraStaminaGain();
     }
     public static bool onlySharesGain()
     {
