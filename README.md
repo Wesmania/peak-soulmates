@@ -14,6 +14,7 @@ Implemented:
 * Sharing extra stamina USE! (configurable)
 * Shared lollipops and energy drinks! (configurable)
 * Shared slipping! (configurable)
+* Many other shared afflictions! (all configurable)
 * New soulmates chosen at every biome!
 * You can set fixed soulmates!
 
@@ -26,7 +27,6 @@ Implemented, but maybe buggy:
 ## Planned features
 
 * Fix bugs.
-* Add more things from Roots update.
 
 ## Installation
 

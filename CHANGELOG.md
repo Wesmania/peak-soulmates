@@ -91,3 +91,4 @@ First kind of working version
 
 * Various big internal refactors.
 * Prepare for future conversion to Steam networking.
+* Added more shared afflictions, including those added in the Roots update.
