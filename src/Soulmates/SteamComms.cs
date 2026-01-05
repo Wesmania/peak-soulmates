@@ -26,20 +26,18 @@ public class SteamComms
 {
     internal static INetworkingService Service = Net.Service!;
     static readonly uint MOD_ID = ModId.FromGuid("com.github.Wesmania.Soulmates");
-    IDisposable? reg;
     Action<Pid, SoulmateEventType, string>? eventHandle;
 
     public static SteamComms instance = new();
     public static void Awake(Action<Pid, SoulmateEventType, string> handle)
     {
         instance.eventHandle = handle;
-        Service.RegisterNetworkType(typeof(SteamComms), MOD_ID);
         SteamNetworkingService? s = (SteamNetworkingService) Service;
         s?.SetSharedSecret(null);
-        instance.reg = Service.RegisterNetworkObject(instance, MOD_ID);
+        Service.RegisterNetworkType(typeof(SteamComms), MOD_ID);
     }
     public static void OnDestroy() {
-        instance.reg?.Dispose();
+        Service.DeregisterNetworkType(typeof(SteamComms), MOD_ID);
     }
 
     public static Pid MyNumber()
@@ -136,7 +134,7 @@ public class SteamComms
     }
 
     [CustomRPC]
-    private static void HandleEvent(Pid sender, SoulmateEventType eventType, string e)
+    public static void HandleEvent(Pid sender, SoulmateEventType eventType, string e)
     {
         Plugin.Log.LogInfo($"Received RPC from {sender}, type {eventType}");
         instance.eventHandle?.Invoke(sender, eventType, e);
