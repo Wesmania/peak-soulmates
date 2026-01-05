@@ -1,15 +1,14 @@
 global using Pid = ulong;
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NetworkingLibrary;
 using NetworkingLibrary.Modules;
 using NetworkingLibrary.Services;
+using Photon.Pun;
 using Photon.Realtime;
 using Steamworks;
-using UnityEngine;
 
 namespace Soulmates;
 public struct PlayerInfo
@@ -34,6 +33,9 @@ public class SteamComms
     public static void Awake(Action<Pid, SoulmateEventType, string> handle)
     {
         instance.eventHandle = handle;
+        Service.RegisterNetworkType(typeof(SteamComms), MOD_ID);
+        SteamNetworkingService? s = (SteamNetworkingService) Service;
+        s?.SetSharedSecret(null);
         instance.reg = Service.RegisterNetworkObject(instance, MOD_ID);
     }
     public static void OnDestroy() {
@@ -49,7 +51,7 @@ public class SteamComms
     }
     public static bool IAmHost()
     {
-        return Service.IsHost;
+        return PhotonNetwork.IsMasterClient;
     }
 
     public static Pid[] AllPlayerNumbers()
@@ -110,10 +112,12 @@ public class SteamComms
         Pid sender = MyNumber();
         if (who == ReceiverGroup.All || who == ReceiverGroup.Others)
         {
+            Plugin.Log.LogInfo($"Sending RPC {eventType}");
             Service.RPC(MOD_ID, h, r, sender, eventType, e);
         }
         else
         {
+            Plugin.Log.LogInfo($"Sending RPCToHost {eventType}");
             Service.RPCToHost(MOD_ID, h, r, sender, eventType, e);
         }
     }
@@ -134,6 +138,7 @@ public class SteamComms
     [CustomRPC]
     private static void HandleEvent(Pid sender, SoulmateEventType eventType, string e)
     {
+        Plugin.Log.LogInfo($"Received RPC from {sender}, type {eventType}");
         instance.eventHandle?.Invoke(sender, eventType, e);
     }
 }

@@ -80,6 +80,7 @@ public partial class Plugin : BaseUnityPlugin
     }
     private void OnEvent(Pid sender, SoulmateEventType eventType, string json)
     {
+        Log.LogInfo($"Inside OnEvent, {eventType} from {sender}");
         switch (eventType)
         {
             case SoulmateEventType.RECALCULATE:
@@ -164,7 +165,7 @@ public partial class Plugin : BaseUnityPlugin
 
     private static void OnRecalculateSoulmateEvent(Pid sender, string json)
     {
-        globalSoulmates = SoulmateProtocol.instance.OnNewSoulmates(json) ?? new Soulmates();
+                globalSoulmates = SoulmateProtocol.instance.OnNewSoulmates(json) ?? new Soulmates();
     }
 
     public static RecalculateSoulmatesEvent? RecalculateSoulmate(bool firstTime)
