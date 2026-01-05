@@ -8,11 +8,11 @@ static class AfflictionUtil
 {
     public static bool sharedLolli()
     {
-        return SoulmateProtocol.instance.previousSoulmates.HasValue && SoulmateProtocol.instance.previousSoulmates.Value.config.sharedLolli;
+        return Plugin.config.SharedLolli();
     }
     public static bool sharedEnergol()
     {
-        return SoulmateProtocol.instance.previousSoulmates.HasValue && SoulmateProtocol.instance.previousSoulmates.Value.config.sharedEnergol;
+        return Plugin.config.SharedEnergol();
     }
     public static void onSharedAfflictionEvent(Pid sender, string json)
     {
