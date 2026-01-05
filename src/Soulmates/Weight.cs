@@ -60,10 +60,8 @@ public static class Weight
 
     public static UpdateWeight RecalculateSharedWeight(UpdateWeight original)
     {
-        if (!Plugin.LocalCharIsReady())
-        {
-            return original;
-        }
+        if (!Plugin.LocalCharIsReady()) return original;
+        if (!Plugin.config.ReceivedConfig.HasValue) return original;    // Wait for game to start
 
         Character localChar = Character.localCharacter;
         var affs = localChar.refs.afflictions;
@@ -98,6 +96,11 @@ public static class Weight
 
     private static bool ShouldSendWeight()
     {
+        // Wait until the game starts...
+        if (!Plugin.config.ReceivedConfig.HasValue)
+        {
+            return false;
+        }
         bool o = shouldSendWeight;
         shouldSendWeight = false;
         return o;
