@@ -27,6 +27,7 @@ public class SteamComms
     internal static INetworkingService Service = Net.Service!;
     static readonly uint MOD_ID = ModId.FromGuid("com.github.Wesmania.Soulmates");
     Action<Pid, SoulmateEventType, string>? eventHandle;
+    IDisposable? handle;
 
     public static SteamComms instance = new();
     public static void Awake(Action<Pid, SoulmateEventType, string> handle)
@@ -34,11 +35,12 @@ public class SteamComms
         instance.eventHandle = handle;
         SteamNetworkingService? s = (SteamNetworkingService)Service;
         s?.SetSharedSecret(null);
-        Service.RegisterNetworkType(typeof(SteamComms), MOD_ID);
+        instance.handle = Service.RegisterNetworkType(typeof(SteamComms), MOD_ID);
     }
     public static void OnDestroy()
     {
-        Service.DeregisterNetworkType(typeof(SteamComms), MOD_ID);
+        // Handle should clean itself up
+        instance = new();
     }
 
     public static Pid MyNumber()
