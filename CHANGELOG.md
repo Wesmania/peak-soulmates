@@ -77,3 +77,7 @@ First kind of working version
 * Change most Photon messages to unreliable. This might help with some players
   lagging a lot.
 * New mod icon. Thank you, /v/!
+
+## V0.2.9
+
+* Fixup AddStatus signatures so that the mod loads again.
