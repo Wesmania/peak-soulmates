@@ -65,8 +65,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool))]
-    public static void AddStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, out SharedDamage __state)
+    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool))]
+    public static void AddStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, out SharedDamage __state)
     {
         __state.type = statusType;
         __state.value = amount;
@@ -80,8 +80,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPostfix]
-    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool))]
-    public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, SharedDamage __state)
+    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool))]
+    public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, SharedDamage __state)
     {
         isRecursiveStatusCall[__instance.character.photonView.ViewID]--;
         if (isRecursiveStatusCall[__instance.character.photonView.ViewID] == 0)
