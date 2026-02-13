@@ -15,6 +15,7 @@ Implemented:
 * Shared lollipops and energy drinks! (configurable)
 * Shared slipping! (configurable)
 * New soulmates chosen at every biome!
+* You can set fixed soulmates!
 
 Implemented, but maybe buggy:
 
@@ -35,6 +36,14 @@ Implemented, but maybe buggy:
 
 1. Run the mod once.
 2. Open and edit the file `BepInEx/config/com.github.Wesmania.Soulmates.cfg` in PEAK's directory.
+
+### Fixed soulmates
+
+You can set fixed pairings of soulmates in the configuration. Check the "FixedSoulmates" key. **NOTE THAT**:
+
+* Your pairings must have as many people as the "SoulmateGroupSize" value.
+* Nicknames must match exactly and cannot repeat.
+* Fixed pairings are HOST-LOCAL. **If your host changes, fixed pairings will no longer apply!**
 
 ## Multiplayer Compatibility
 

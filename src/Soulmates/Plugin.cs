@@ -94,6 +94,7 @@ public partial class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> Enabled { get; private set; } = null!;
     internal static ConfigEntry<int> SoulmateGroupSize { get; private set; } = null!;
     internal static ConfigEntry<float> SoulmateStrength { get; private set; } = null!;
+    internal static ConfigEntry<string> FixedSoulmates { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedBonk { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedSlip { get; private set; } = null!;
     internal static ConfigEntry<bool> EnableSharedExtraStaminaGain { get; private set; } = null!;
@@ -111,6 +112,7 @@ public partial class Plugin : BaseUnityPlugin
         Enabled = Config.Bind("Config", "Enabled", true, "Enable/disable the mod with this");
         SoulmateGroupSize = Config.Bind("Config", "SoulmateGroupSize", 2, "How many people are bound in one group. Defaults to 2.");
         SoulmateStrength = Config.Bind("Config", "SoulmateStrength", 1.0f, "How much of soulmate's status is applied to you");
+        FixedSoulmates = Config.Bind("Config", "FixedSoulmates", "", "Fixed soulmate assignments, matched by nick. Format is \"name1,name2;name3,name4\".\nThis will match name1 with name2 and name3 with name4.");
         EnableSharedBonk = Config.Bind("Config", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
         EnableSharedSlip = Config.Bind("Config", "EnableSharedSlip", true, "Slipping on something makes the soulmate slip too");
         EnableSharedExtraStaminaGain = Config.Bind("Config",
@@ -148,6 +150,14 @@ public partial class Plugin : BaseUnityPlugin
         }
     }
 
+    public static bool HasFixedSoulmates()
+    {
+        return FixedSoulmates.Value != "";
+    }
+    public static List<List<string>> GetFixedSoulmates()
+    {
+        return FixedSoulmates.Value.Split(";").ToList().Select(s => s.Split(",").ToList()).ToList();
+    }
     private void OnDestroy()
     {
         if (!Enabled.Value) return;
@@ -361,6 +371,29 @@ public partial class Plugin : BaseUnityPlugin
         SoulmateTextPatch.SetSoulmateText(Soulmates.SoulmateText(), delay);
     }
 
+    private static void ReorderForFixedPairings(ref List<int> actors)
+    {
+        var actorsWithNames = actors.ToDictionary(a => indexToNick(a));
+        var fixedPairs = GetFixedSoulmates();
+        if (fixedPairs.Count == 0) return;
+
+        if (!fixedPairs.All(l => l.Count == GetSoulmateGroupSize()))
+        {
+            Log.LogWarning("Fixed soulmate groups don't match soulmate group size! FIXME we should be able to handle this.");
+            return;
+        }
+        var fittingFixedPairs = fixedPairs.Where(l => l.All(s => actorsWithNames.ContainsKey(s)));
+        var fixedList = fittingFixedPairs.SelectMany(l => l.Select(s => actorsWithNames[s])).ToList();
+        var fixedSet = fixedList.ToHashSet();
+        if (fixedSet.Count < fixedList.Count)
+        {
+            Log.LogWarning("Fixed soulmate groups have repeating names!");
+            return;
+        }
+        var rest = actors.Where(a => !fixedSet.Contains(a));
+        actors = [.. fixedList, .. rest];
+    }
+
     public static RecalculateSoulmatesEvent? RecalculateSoulmate(bool firstTime)
     {
         Log.LogInfo("Recalculating soulmate");
@@ -378,6 +411,8 @@ public partial class Plugin : BaseUnityPlugin
         Log.LogInfo("I am master client, preparing new soulmate list");
 
         actors.Shuffle();
+        ReorderForFixedPairings(ref actors);
+
         RecalculateSoulmatesEvent soulmates;
 
         soulmates.soulmates = actors;
