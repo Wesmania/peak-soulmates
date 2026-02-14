@@ -157,10 +157,12 @@ public class SteamComms
     public static void Awake(Action<Pid, SoulmateEventType, string> handle)
     {
         instance.eventHandle = handle;
+        PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
     }
     public static void OnDestroy()
     {
         instance.eventHandle = null;
+        PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
     }
 
     public static Pid MyNumber()
@@ -241,6 +243,15 @@ public class SteamComms
         PhotonNetwork.RaiseEvent(SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, r);
     }
 
+    public static void OnEvent(EventData e)
+    {
+        if (e.Code != SHARED_DAMAGE_EVENT_CODE) return;
+        object[] data = (object[])e.CustomData;
+        Pid sender = e.Sender;
+        SoulmateEventType eventType = (SoulmateEventType)(int)data[0];
+        string s = (string)data[1];
+        HandleEvent(sender, eventType, s);
+    }
     public static void HandleEvent(Pid sender, SoulmateEventType eventType, string e)
     {
         Plugin.Log.LogInfo($"Received RPC from {sender}, type {eventType}");
