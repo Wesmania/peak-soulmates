@@ -254,7 +254,6 @@ public class SteamComms
     }
     public static void HandleEvent(Pid sender, SoulmateEventType eventType, string e)
     {
-        Plugin.Log.LogInfo($"Received RPC from {sender}, type {eventType}");
         instance.eventHandle?.Invoke(sender, eventType, e);
     }
 }

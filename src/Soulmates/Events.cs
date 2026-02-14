@@ -34,7 +34,7 @@ public class EventCache
             return e;
         }
         cache[key] += e.value;
-        if (cache[key] < 0.01f)
+        if (cache[key] < 0.0125001f)
         {
             return null;
         }
@@ -81,6 +81,17 @@ public static class Events
         Plugin.Log.LogInfo("Sending recalculate soulmate event...");
         SendEvent(SoulmateEventType.RECALCULATE, e.Serialize(), ReceiverGroup.All, true);
     }
+
+    private static bool IsUselessSubtract(SharedDamage e)
+    {
+        return e.kind == SharedDamageKind.SUBTRACT &&
+        Plugin.globalSoulmates.MySoulmateCharacters().All(c =>
+        {
+            var a = c.c.refs.afflictions;
+            return a.GetCurrentStatus(e.type) == 0.0f && a.GetIncrementalStatus(e.type) == 0.0f;
+        });
+    }
+
     public static void SendSharedDamageEvent(SharedDamage e)
     {
         if (!e.type.isShared() || e.type.isAbsolute())
@@ -92,6 +103,12 @@ public static class Events
         var e2 = EventCache.instance.cacheEvent(e);
         if (!e2.HasValue) return;
         e = e2.Value;
+
+        // Little optimization: if we think our soulmates don't have the status, don't decrease it.
+        // Statuses are synced with a delay, but this should be fine.
+        if (IsUselessSubtract(e)) return;
+
+        Plugin.Log.LogInfo($"Sending shared damage {e.type} {e.kind} {e.value}");
 
         bool reliable = true;
         if (e.kind != SharedDamageKind.SET && math.abs(e.value) < 0.01)
