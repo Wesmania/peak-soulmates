@@ -178,24 +178,24 @@ public class SteamComms
 
     public static Pid[] AllPlayerNumbers()
     {
-        return [.. Character.AllCharacters.Select(c => c.photonView.Owner.ActorNumber)];
+        return [.. PhotonNetwork.PlayerList.Select(c => c.ActorNumber)];
     }
 
     // TODO is it expensive to create that dict on-the-fly?
     public static PlayerInfo[] AllPlayers()
     {
-        return [.. Character.AllCharacters.Select(c =>
+        return [.. PhotonNetwork.PlayerList.Select(c =>
         new PlayerInfo
         {
-            id = c.photonView.Owner.ActorNumber,
-            nickname = c.photonView.Owner.NickName,
+            id = c.ActorNumber,
+            nickname = c.NickName,
         }
         )];
     }
 
     public static string? IdToNick(Pid id)
     {
-        return Character.AllCharacters.FirstOrDefault(c => c.photonView.Owner.ActorNumber == id)?.photonView.Owner.NickName;
+        return PhotonNetwork.PlayerList.FirstOrDefault(c => c.ActorNumber == id)?.NickName;
     }
     public static Character? IdToCharacter(Pid id)
     {
@@ -207,9 +207,9 @@ public class SteamComms
 
     public static Pid? PhotonIdToPid(int actorNumber)
     {
-        var c = Character.AllCharacters.FirstOrDefault(c => c.photonView.Owner.ActorNumber == actorNumber);
+        var c = PhotonNetwork.PlayerList.FirstOrDefault(c => c.ActorNumber == actorNumber);
         if (c == null) return null;
-        var nick = c.photonView.Owner.NickName;
+        var nick = c.NickName;
         var players = AllPlayers().ToDictionary(p => p.nickname, p => p.id);
         return players.ContainsKey(nick) ? players[nick] : null;
     }
