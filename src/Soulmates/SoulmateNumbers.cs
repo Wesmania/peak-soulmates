@@ -30,7 +30,7 @@ public class Soulmates
     {
         var my = MySoulmates();
         var ps = SteamComms.AllPlayers().ToDictionary(p => p.nickname);
-        return [.. my.SelectMany(sn => ps.ContainsKey(sn) ? [ps[sn].id] : Array.Empty<ulong>())];
+        return [.. my.SelectMany(sn => ps.ContainsKey(sn) ? [ps[sn].id] : Array.Empty<Pid>())];
     }
     public HashSet<PlayerCharacterInfo> MySoulmateCharacters()
     {
@@ -186,7 +186,7 @@ public class SoulmateProtocol
         nicks.Sort();
 
         var all = String.Join(" ", nicks);
-        Plugin.Log.LogInfo(($"Character count: {nicks.Count()}, Characters: {all}"));
+        Plugin.Log.LogInfo($"Character count: {nicks.Count()}, Characters: {all}");
 
         ids.Shuffle();
         ReorderForFixedPairings(ref ids);

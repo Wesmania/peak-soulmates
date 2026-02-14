@@ -33,7 +33,7 @@ public static class Extensions
 
 
 [BepInAutoPlugin]
-[BepInDependency("off_grid.NetworkingLibrary")]
+//[BepInDependency("off_grid.NetworkingLibrary")]
 public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log { get; private set; } = null!;
@@ -45,7 +45,7 @@ public partial class Plugin : BaseUnityPlugin
         Log = Logger;
         Log.LogInfo($"Plugin {Name} version 0.3.0 is loaded!");
 
-        config = new(Config); 
+        config = new(Config);
         if (!config.Enabled())
         {
             Log.LogInfo("Soulmates disabled");

@@ -34,7 +34,6 @@ Using Thunderstore should "just work".
 
 ## Manual installation
 
-1. Install the [PEAKNetworkingLibrary](https://thunderstore.io/c/peak/p/DAa/PEAKNetworkingLibrary/) mod.
 1. Download and extract this mod into `BepInEx/plugins`.
 
 ## Configuration

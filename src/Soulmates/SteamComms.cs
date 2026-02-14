@@ -1,11 +1,9 @@
-global using Pid = ulong;
+global using Pid = int;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NetworkingLibrary;
-using NetworkingLibrary.Modules;
-using NetworkingLibrary.Services;
+using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using Steamworks;
@@ -22,6 +20,7 @@ public struct PlayerCharacterInfo
     public PlayerInfo p;
     public Character c;
 }
+/* FIXME doesn't work yet
 public class SteamComms
 {
     internal static INetworkingService Service = Net.Service!;
@@ -138,6 +137,110 @@ public class SteamComms
     }
 
     [CustomRPC]
+    public static void HandleEvent(Pid sender, SoulmateEventType eventType, string e)
+    {
+        Plugin.Log.LogInfo($"Received RPC from {sender}, type {eventType}");
+        instance.eventHandle?.Invoke(sender, eventType, e);
+    }
+}
+*/
+
+
+// Actually Photon still, don't worry about it.
+public class SteamComms
+{
+    public static SteamComms instance = new();
+    internal const byte SHARED_DAMAGE_EVENT_CODE = 198;
+
+    Action<Pid, SoulmateEventType, string>? eventHandle;
+
+    public static void Awake(Action<Pid, SoulmateEventType, string> handle)
+    {
+        instance.eventHandle = handle;
+    }
+    public static void OnDestroy()
+    {
+        instance.eventHandle = null;
+    }
+
+    public static Pid MyNumber()
+    {
+        return PhotonNetwork.LocalPlayer.ActorNumber;
+    }
+    public static string MyNick()
+    {
+        return PhotonNetwork.LocalPlayer.NickName;
+    }
+    public static bool IAmHost()
+    {
+        return PhotonNetwork.IsMasterClient;
+    }
+
+    public static Pid[] AllPlayerNumbers()
+    {
+        return [.. Character.AllCharacters.Select(c => c.photonView.Owner.ActorNumber)];
+    }
+
+    // TODO is it expensive to create that dict on-the-fly?
+    public static PlayerInfo[] AllPlayers()
+    {
+        return [.. Character.AllCharacters.Select(c =>
+        new PlayerInfo
+        {
+            id = c.photonView.Owner.ActorNumber,
+            nickname = c.photonView.Owner.NickName,
+        }
+        )];
+    }
+
+    public static string? IdToNick(Pid id)
+    {
+        return Character.AllCharacters.FirstOrDefault(c => c.photonView.Owner.ActorNumber == id)?.photonView.Owner.NickName;
+    }
+    public static Character? IdToCharacter(Pid id)
+    {
+        var chars = Character.AllCharacters;
+        PlayerInfo? players = AllPlayers().FirstOrDefault(p => p.id == id);
+        if (!players.HasValue) return null;
+        return chars.FirstOrDefault(c => c.photonView.Owner.NickName == players.Value.nickname);
+    }
+
+    public static Pid? PhotonIdToPid(int actorNumber)
+    {
+        var c = Character.AllCharacters.FirstOrDefault(c => c.photonView.Owner.ActorNumber == actorNumber);
+        if (c == null) return null;
+        var nick = c.photonView.Owner.NickName;
+        var players = AllPlayers().ToDictionary(p => p.nickname, p => p.id);
+        return players.ContainsKey(nick) ? players[nick] : null;
+    }
+    public static PlayerCharacterInfo[] NicksToInfos(IEnumerable<string> nicks)
+    {
+        var players = AllPlayers().ToDictionary(p => p.nickname);
+        var chars = Character.AllCharacters.ToDictionary(c => c.photonView.Owner.NickName);
+        return [.. nicks.Where(n => players.ContainsKey(n) && chars.ContainsKey(n))
+                       .Select(n => new PlayerCharacterInfo
+                       {
+                           p = players[n],
+                           c = chars[n]
+                       })];
+    }
+
+    public static void SendEvent(SoulmateEventType eventType, string e, ReceiverGroup who, bool reliable = false)
+    {
+        object[] content = [(int)eventType, e];
+        RaiseEventOptions raiseEventOptions = new() { Receivers = who };
+        var r = reliable ? SendOptions.SendReliable : SendOptions.SendUnreliable;
+        PhotonNetwork.RaiseEvent(SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, r);
+    }
+
+    public static void SendEventTo(SoulmateEventType eventType, string e, Pid[] targets, bool reliable = false)
+    {
+        object[] content = [(int)eventType, e];
+        RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.Others, TargetActors = targets };
+        var r = reliable ? SendOptions.SendReliable : SendOptions.SendUnreliable;
+        PhotonNetwork.RaiseEvent(SHARED_DAMAGE_EVENT_CODE, content, raiseEventOptions, r);
+    }
+
     public static void HandleEvent(Pid sender, SoulmateEventType eventType, string e)
     {
         Plugin.Log.LogInfo($"Received RPC from {sender}, type {eventType}");
