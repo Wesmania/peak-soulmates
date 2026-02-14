@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using ExitGames.Client.Photon;
-using Photon.Pun;
 using Photon.Realtime;
 using Unity.Mathematics;
 
@@ -23,6 +21,13 @@ public class EventCache
         { (CharacterAfflictions.STATUSTYPE.Cold, SharedDamageKind.SUBTRACT), 0.0f },
         { (CharacterAfflictions.STATUSTYPE.Hot, SharedDamageKind.ADD), 0.0f },
         { (CharacterAfflictions.STATUSTYPE.Hot, SharedDamageKind.SUBTRACT), 0.0f },
+        { (CharacterAfflictions.STATUSTYPE.Poison, SharedDamageKind.ADD), 0.0f },
+        { (CharacterAfflictions.STATUSTYPE.Poison, SharedDamageKind.SUBTRACT), 0.0f },
+        { (CharacterAfflictions.STATUSTYPE.Spores, SharedDamageKind.ADD), 0.0f },
+        { (CharacterAfflictions.STATUSTYPE.Spores, SharedDamageKind.SUBTRACT), 0.0f },
+        { (CharacterAfflictions.STATUSTYPE.Drowsy, SharedDamageKind.ADD), 0.0f },
+        { (CharacterAfflictions.STATUSTYPE.Drowsy, SharedDamageKind.SUBTRACT), 0.0f },
+        { (CharacterAfflictions.STATUSTYPE.Web, SharedDamageKind.SUBTRACT), 0.0f },
     };
 
     private float staminaCache = 0.0f;
