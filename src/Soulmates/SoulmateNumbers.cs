@@ -151,16 +151,16 @@ public class SoulmateProtocol
         return mates;
     }
 
-    private static void ReorderForFixedPairings(ref List<int> actors)
+    private static void ReorderForFixedPairings(ref List<Pid> actors)
     {
 	if (!Plugin.config.HasFixedSoulmates()) return;
-        var actorsWithNames = actors.ToDictionary(a => indexToNick(a));
+        var actorsWithNames = actors.ToDictionary(a => SteamComms.IdToNick(a));
         var fixedPairs = Plugin.config.GetFixedSoulmates();
         if (fixedPairs.Count == 0) return;
 
-        if (!fixedPairs.All(l => l.Count == GetSoulmateGroupSize()))
+        if (!fixedPairs.All(l => l.Count == Plugin.config.SoulmateGroupSize()))
         {
-            Log.LogWarning("Fixed soulmate groups don't match soulmate group size! FIXME we should be able to handle this.");
+            Plugin.Log.LogWarning("Fixed soulmate groups don't match soulmate group size! FIXME we should be able to handle this.");
             return;
         }
         var fittingFixedPairs = fixedPairs.Where(l => l.All(s => actorsWithNames.ContainsKey(s)));
@@ -168,7 +168,7 @@ public class SoulmateProtocol
         var fixedSet = fixedList.ToHashSet();
         if (fixedSet.Count < fixedList.Count)
         {
-            Log.LogWarning("Fixed soulmate groups have repeating names!");
+            Plugin.Log.LogWarning("Fixed soulmate groups have repeating names!");
             return;
         }
         var rest = actors.Where(a => !fixedSet.Contains(a));
@@ -189,7 +189,7 @@ public class SoulmateProtocol
         Plugin.Log.LogInfo(($"Character count: {nicks.Count()}, Characters: {all}"));
 
         ids.Shuffle();
-        ReorderForFixedPairings(ref actors);
+        ReorderForFixedPairings(ref ids);
 
         RecalculateSoulmatesEvent soulmates;
 

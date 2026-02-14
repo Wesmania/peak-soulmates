@@ -126,11 +126,12 @@ public class SharedDamagePatch
     public static void UpdateNormalStatusesPostfix(CharacterAfflictions __instance)
     {
         // We handle hunger locally since it's very predictable, and this way we don't spam messages all the time.
-        foreach (var c in Soulmates.SoulmateCharacters())
+        foreach (var d in Plugin.globalSoulmates.MySoulmateCharacters())
         {
+            var c = d.c;
             if (c.data.fullyConscious && !c.data.isSkeleton)
             {
-                var h = Time.deltaTime * __instance.hungerPerSecond * Ascents.hungerRateMultiplier * Plugin.GetSoulmateStrength();
+                var h = Time.deltaTime * __instance.hungerPerSecond * Ascents.hungerRateMultiplier * Plugin.config.SoulmateStrength();
                 __instance.AddStatus(CharacterAfflictions.STATUSTYPE.Hunger, h);
             }
         }

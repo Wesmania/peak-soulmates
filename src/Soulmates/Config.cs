@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using BepInEx.Configuration;
 
 namespace Soulmates;
@@ -7,7 +9,7 @@ public class ModConfig
     ConfigEntry<bool> CEnabled { get; set; } = null!;
     ConfigEntry<int> CSoulmateGroupSize { get; set; } = null!;
     ConfigEntry<float> CSoulmateStrength { get; set; } = null!;
-    ConfigEntry<string> CFixedSoulmates { get; private set; } = null!;
+    ConfigEntry<string> CFixedSoulmates { get; set; } = null!;
     ConfigEntry<bool> CEnableSharedBonk { get; set; } = null!;
     ConfigEntry<bool> CEnableSharedSlip { get; set; } = null!;
     ConfigEntry<bool> CEnableSharedExtraStaminaGain { get; set; } = null!;
@@ -29,7 +31,7 @@ public class ModConfig
         CEnabled = pluginConfig.Bind("Config", "Enabled", true, "Enable/disable the mod with this");
         CSoulmateGroupSize = pluginConfig.Bind("Config", "SoulmateGroupSize", 2, "How many people are bound in one group. Defaults to 2.");
         CSoulmateStrength = pluginConfig.Bind("Config", "SoulmateStrength", 1.0f, "How much of soulmate's status is applied to you");
-        CFixedSoulmates = Config.Bind("Config", "FixedSoulmates", "", "Fixed soulmate assignments, matched by nick. Format is \"name1,name2;name3,name4\".\nThis will match name1 with name2 and name3 with name4.");
+        CFixedSoulmates = pluginConfig.Bind("Config", "FixedSoulmates", "", "Fixed soulmate assignments, matched by nick. Format is \"name1,name2;name3,name4\".\nThis will match name1 with name2 and name3 with name4.");
         CEnableSharedBonk = pluginConfig.Bind("Config", "EnableSharedBonk", true, "Bonking a player bonks his soulmate too");
         CEnableSharedSlip = pluginConfig.Bind("Config", "EnableSharedSlip", true, "Slipping on something makes the soulmate slip too");
         CEnableSharedExtraStaminaGain = pluginConfig.Bind("Config",
@@ -147,10 +149,10 @@ public class ModConfig
 
     public bool HasFixedSoulmates()
     {
-        return FixedSoulmates.Value != "";
+        return CFixedSoulmates.Value != "";
     }
     public List<List<string>> GetFixedSoulmates()
     {
-        return FixedSoulmates.Value.Split(";").ToList().Select(s => s.Split(",").ToList()).ToList();
+        return CFixedSoulmates.Value.Split(";").ToList().Select(s => s.Split(",").ToList()).ToList();
     }
 }
