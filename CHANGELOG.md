@@ -81,3 +81,8 @@ First kind of working version
 ## V0.2.9
 
 * Fixup AddStatus signatures so that the mod loads again.
+
+## V0.2.10
+
+* Add option to set fixed soulmate pairings. Check the README.
+* Calculate hunger ticks locally instead of sending messages. Should help with lag.
