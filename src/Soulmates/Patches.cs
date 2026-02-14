@@ -21,6 +21,12 @@ public class SharedDamagePatch
             if (isReceivingSharedDamage.Contains(__instance.character.photonView.ViewID)) return;
             var e = _e;
             if (e.type.isAbsolute() || !e.type.isShared()) return;
+
+            if (e.type == CharacterAfflictions.STATUSTYPE.Hunger && e.kind == SharedDamageKind.ADD && e.value < 0.01f & e.value >= 0.0f)
+            {
+                // We handle this separately, don't spam
+                return;
+            }
             Events.SendSharedDamageEvent(e);
         }
         catch (System.Exception ex)
@@ -61,7 +67,7 @@ public class SharedDamagePatch
         e.type = statusType;
         e.value = diff;
         e.kind = SharedDamageKind.SET;
-        StatusPostfix(__instance, e);        
+        StatusPostfix(__instance, e);
     }
 
     [HarmonyPrefix]
@@ -113,6 +119,20 @@ public class SharedDamagePatch
         if (isRecursiveStatusCall[__instance.character.photonView.ViewID] == 0)
         {
             StatusPostfix(__instance, __state);
+        }
+    }
+    [HarmonyPostfix]
+    [HarmonyPatch("UpdateNormalStatuses")]
+    public static void UpdateNormalStatusesPostfix(CharacterAfflictions __instance)
+    {
+        // We handle hunger locally since it's very predictable, and this way we don't spam messages all the time.
+        foreach (var c in Soulmates.SoulmateCharacters())
+        {
+            if (c.data.fullyConscious && !c.data.isSkeleton)
+            {
+                var h = Time.deltaTime * __instance.hungerPerSecond * Ascents.hungerRateMultiplier * Plugin.GetSoulmateStrength();
+                __instance.AddStatus(CharacterAfflictions.STATUSTYPE.Hunger, h);
+            }
         }
     }
 }
