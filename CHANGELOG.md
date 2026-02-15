@@ -95,3 +95,7 @@ First kind of working version
 * More optimization to minimize network message spam.
 * Collect stats on network messages.
 * Fix some issues with local hunger calculation.
+
+## V0.3.1
+
+* Fix an error in README.
