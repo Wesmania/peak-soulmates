@@ -147,7 +147,6 @@ public static class RecalculateSoulmatesPatch
     [HarmonyPatch("StartPassedOutOnTheBeach")]
     public static void StartPassedOutOnTheBeachPostfix(Character __instance)
     {
-        Plugin.Log.LogInfo("Passed out on the beach function");
         if (!__instance.IsLocal)
         {
             return;
@@ -179,7 +178,6 @@ public static class RecalculateSoulmatesPatch2
     [HarmonyPatch("Light_Rpc")]
     public static void LightPostfix(Campfire __instance)
     {
-        Plugin.Log.LogInfo("Campfire function");
         var new_mates = Plugin.RecalculateSoulmate(false);
         if (new_mates.HasValue)
         {

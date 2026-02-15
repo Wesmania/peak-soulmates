@@ -80,7 +80,6 @@ public partial class Plugin : BaseUnityPlugin
     }
     private void OnEvent(Pid sender, SoulmateEventType eventType, string json)
     {
-        Log.LogInfo($"Inside OnEvent, {eventType} from {sender}");
         switch (eventType)
         {
             case SoulmateEventType.RECALCULATE:

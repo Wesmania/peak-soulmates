@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Photon.Realtime;
@@ -113,8 +114,6 @@ public static class Events
         // Statuses are synced with a delay, but this should be fine.
         if (IsUselessSubtract(e)) return;
 
-        Plugin.Log.LogInfo($"Sending shared damage {e.type} {e.kind} {e.value}");
-
         bool reliable = true;
         if (e.kind != SharedDamageKind.SET && math.abs(e.value) < 0.01)
         {
@@ -160,8 +159,8 @@ public static class Events
 
 class SharedDamageRecord
 {
-    CharacterAfflictions.STATUSTYPE type;
-    SharedDamageKind kind;
+    readonly CharacterAfflictions.STATUSTYPE type;
+    readonly SharedDamageKind kind;
 
     public SharedDamageRecord(SharedDamage e)
     {
@@ -172,7 +171,21 @@ class SharedDamageRecord
     {
         return $"Shared Damage({type}, {kind})";
     }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is SharedDamageRecord other)
+        {
+            return type == other.type && kind == other.kind;
+        }
+        return false;
+    }
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(type, kind);
+    }
 }
+
 public class EventStats
 {
     public static EventStats instance = new();

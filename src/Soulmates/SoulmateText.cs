@@ -67,24 +67,19 @@ public class TextSetter : MonoBehaviour
 {
     public void SetSoulmateText(string text, float delay)
     {
-        Plugin.Log.LogInfo("In SetSoulmateText");
         StartCoroutine(TextCoroutine());
         IEnumerator TextCoroutine()
         {
-            Plugin.Log.LogInfo("In SetSoulmateText coroutine");
             yield return new WaitForSeconds(delay);
             if (SoulmateTextPatch.text != null)
             {
-                Plugin.Log.LogInfo("In SetSoulmateText coroutine, set text");
                 SoulmateTextPatch.text.text = text;
             }
             yield return new WaitForSeconds(10f);
             if (SoulmateTextPatch.text != null)
             {
-                Plugin.Log.LogInfo("In SetSoulmateText coroutine, reset text");
                 SoulmateTextPatch.text.text = "";
             }
-            Plugin.Log.LogInfo("In SetSoulmateText coroutine end");
         }
     }
 }
