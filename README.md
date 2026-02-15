@@ -54,6 +54,3 @@ You can set fixed pairings of soulmates in the configuration. Check the "FixedSo
 This mod uses custom network events. Because of this it's best that all players
 in the lobby have the mod installed. If some players don't have the mod, weird
 and bad things will probably happen.
-
-From version 0.3.0, the mod uses Steam networking instead of Photon. **Bad
-things might happen if you mix-and-match versions before and after 0.3.0.**
