@@ -125,6 +125,7 @@ public class SharedDamagePatch
     [HarmonyPatch("UpdateNormalStatuses")]
     public static void UpdateNormalStatusesPostfix(CharacterAfflictions __instance)
     {
+        if (!__instance.photonView.IsMine) return;
         // We handle hunger locally since it's very predictable, and this way we don't spam messages all the time.
         if (!__instance.character.data.fullyConscious) return;
         foreach (var d in Plugin.globalSoulmates.MySoulmateCharacters())
