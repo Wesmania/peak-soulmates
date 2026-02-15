@@ -165,7 +165,9 @@ public partial class Plugin : BaseUnityPlugin
 
     private static void OnRecalculateSoulmateEvent(Pid sender, string json)
     {
-                globalSoulmates = SoulmateProtocol.instance.OnNewSoulmates(json) ?? new Soulmates();
+        globalSoulmates = SoulmateProtocol.instance.OnNewSoulmates(json) ?? new Soulmates();
+        EventStats.instance.PrintStats();
+        EventStats.instance.Reset();
     }
 
     public static RecalculateSoulmatesEvent? RecalculateSoulmate(bool firstTime)

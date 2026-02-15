@@ -120,16 +120,18 @@ public static class Events
         {
             reliable = false;
         }
+        EventStats.instance.CountSharedDamage(e);
         SendToSoulmates(SoulmateEventType.DAMAGE, e.Serialize(), reliable);
     }
     public static void SendUpdateWeightEvent(UpdateWeight e)
     {
+        EventStats.instance.CountUpdateWeight();
         SendEvent(SoulmateEventType.UPDATE_WEIGHT, e.Serialize(), ReceiverGroup.Others, true);
     }
 
     public static void SendSharedBonkEvent(SharedBonk e)
     {
-        Plugin.Log.LogInfo($"Sending bonk {e.victim} {e.ragdollTime} {e.force} {e.contactPoint} {e.range}");
+        EventStats.instance.CountSharedBonk();
         SendEvent(SoulmateEventType.SHARED_BONK, e.Serialize(), ReceiverGroup.All);
     }
     public static void SendSharedExtraStaminaEvent(SharedExtraStamina e)
@@ -137,10 +139,12 @@ public static class Events
         var e2 = EventCache.instance.cacheStamina(e);
         if (!e2.HasValue) return;
         e = e2.Value;
+        EventStats.instance.CountSharedExtraStamina();
         SendToSoulmates(SoulmateEventType.SHARED_EXTRA_STAMINA, e.Serialize());
     }
     public static void SendSharedAfflictionEvent(SharedAffliction e)
     {
+        EventStats.instance.CountSharedAffliction();
         SendToSoulmates(SoulmateEventType.SHARED_AFFLICTION, e.Serialize());
     }
     public static void SendWhoIsMySoulmatesEvent()
@@ -151,5 +155,67 @@ public static class Events
     public static void SendThisIsYourSoulmatesEvent(RecalculateSoulmatesEvent e, Pid target)
     {
         SendEventTo(SoulmateEventType.RECALCULATE, e.Serialize(), [target], true);
+    }
+}
+
+class SharedDamageRecord
+{
+    CharacterAfflictions.STATUSTYPE type;
+    SharedDamageKind kind;
+
+    public SharedDamageRecord(SharedDamage e)
+    {
+        type = e.type;
+        kind = e.kind;
+    }
+    public override string ToString()
+    {
+        return $"Shared Damage({type}, {kind})";
+    }
+}
+public class EventStats
+{
+    public static EventStats instance = new();
+    private Dictionary<SharedDamageRecord, int> sharedDamageCounts = [];
+    int updateWeightCount = 0;
+    int sharedBonkCount = 0;
+    int sharedExtraStaminaCount = 0;
+    int sharedAfflictionCount = 0;
+
+    public void CountSharedDamage(SharedDamage e)
+    {
+        var record = new SharedDamageRecord(e);
+        if (!sharedDamageCounts.ContainsKey(record))
+        {
+            sharedDamageCounts[record] = 0;
+        }
+        sharedDamageCounts[record]++;
+    }
+
+    public void CountUpdateWeight() => updateWeightCount++;
+    public void CountSharedBonk() => sharedBonkCount++;
+    public void CountSharedExtraStamina() => sharedExtraStaminaCount++;
+    public void CountSharedAffliction() => sharedAfflictionCount++;
+
+    public void PrintStats()
+    {
+        Plugin.Log.LogInfo("Event stats:");
+        foreach (var kvp in sharedDamageCounts)
+        {
+            Plugin.Log.LogInfo($"{kvp.Key}: {kvp.Value}");
+        }
+        Plugin.Log.LogInfo($"UpdateWeight: {updateWeightCount}");
+        Plugin.Log.LogInfo($"SharedBonk: {sharedBonkCount}");
+        Plugin.Log.LogInfo($"SharedExtraStamina: {sharedExtraStaminaCount}");
+        Plugin.Log.LogInfo($"SharedAffliction: {sharedAfflictionCount}");
+    }
+
+    public void Reset()
+    {
+        sharedDamageCounts.Clear();
+        updateWeightCount = 0;
+        sharedBonkCount = 0;
+        sharedExtraStaminaCount = 0;
+        sharedAfflictionCount = 0;
     }
 }
