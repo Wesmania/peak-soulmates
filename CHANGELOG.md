@@ -93,3 +93,5 @@ First kind of working version
 * Prepare for future conversion to Steam networking.
 * Added more shared afflictions, including those added in the Roots update.
 * More optimization to minimize network message spam.
+* Collect stats on network messages.
+* Fix some issues with local hunger calculation.
