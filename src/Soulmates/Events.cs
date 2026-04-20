@@ -28,6 +28,8 @@ public class EventCache
         { (CharacterAfflictions.STATUSTYPE.Spores, SharedDamageKind.SUBTRACT), 0.0f },
         { (CharacterAfflictions.STATUSTYPE.Drowsy, SharedDamageKind.ADD), 0.0f },
         { (CharacterAfflictions.STATUSTYPE.Drowsy, SharedDamageKind.SUBTRACT), 0.0f },
+        // Fairy lantern
+        { (CharacterAfflictions.STATUSTYPE.Injury, SharedDamageKind.SUBTRACT), 0.0f },
         { (CharacterAfflictions.STATUSTYPE.Web, SharedDamageKind.SUBTRACT), 0.0f },
     };
 

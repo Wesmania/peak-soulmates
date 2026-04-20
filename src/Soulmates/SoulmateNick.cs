@@ -20,7 +20,7 @@ public class SoulmateNickPatch {
         var pid = SteamComms.PhotonIdToPid(co);
         if (pid == null) return;
 
-        if (Plugin.globalSoulmates.PidIsSoulmate(pid.Value))
+        if (Plugin.globalSoulmates.PidIsSoulmate(pid))
         {
             t.color = Colors.soulmateColor;
             return;

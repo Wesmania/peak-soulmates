@@ -49,7 +49,7 @@ public static class BonkPatch
             b.force = new V3(-coll.relativeVelocity.normalized * __instance.bonkForce);
             b.contactPoint = new V3(coll.contacts[0].point);
             b.range = __instance.bonkRange;
-            b.victim = victim.Value;
+            b.victim = victim;
             Events.SendSharedBonkEvent(b);
         }
     }

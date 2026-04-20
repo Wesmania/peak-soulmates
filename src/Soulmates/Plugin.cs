@@ -43,7 +43,7 @@ public partial class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = Logger;
-        Log.LogInfo($"Plugin {Name} version 0.3.1 is loaded!");
+        Log.LogInfo($"Plugin {Name} version 0.3.2 is loaded!");
 
         config = new(Config);
         if (!config.Enabled())

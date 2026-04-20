@@ -99,3 +99,9 @@ First kind of working version
 ## V0.3.1
 
 * Fix an error in README.
+
+## V0.3.2
+
+* Fix a crash caused by Photon reporting multiple players with the same name.
+  * Might still be some bugs caused by this, who knows.
+* Cache healing events too, Fairy Lantern sends them once per frame.

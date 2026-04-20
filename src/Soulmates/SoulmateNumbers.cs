@@ -7,7 +7,7 @@ namespace Soulmates;
 
 public class Soulmates
 {
-    private Dictionary<string, int> soulmatesByName;
+    private Dictionary<string, int> soulmateGroupsByName;
     private Dictionary<int, HashSet<string>> soulmatesByGroup;
     private readonly string myName;
     private readonly int myGroup;
@@ -15,7 +15,7 @@ public class Soulmates
     public Soulmates() : this([], "None", 0) { }
     public Soulmates(Dictionary<string, int> soulmatesByName, string myName, int myGroup)
     {
-        this.soulmatesByName = soulmatesByName;
+        this.soulmateGroupsByName = soulmatesByName;
         this.myName = myName;
         this.myGroup = myGroup;
         this.soulmatesByGroup = soulmatesByName.GroupBy(kv => kv.Value)
@@ -29,8 +29,8 @@ public class Soulmates
     public HashSet<Pid> MySoulmatePids()
     {
         var my = MySoulmates();
-        var ps = SteamComms.AllPlayers().ToDictionary(p => p.nickname);
-        return [.. my.SelectMany(sn => ps.ContainsKey(sn) ? [ps[sn].id] : Array.Empty<Pid>())];
+        var ps = SteamComms.AllPlayers().ToLookup(p => p.nickname);
+        return [.. my.SelectMany(sn => ps.Contains(sn) ? [ps[sn].First().id] : Array.Empty<Pid>())];
     }
     public HashSet<PlayerCharacterInfo> MySoulmateCharacters()
     {
@@ -38,7 +38,7 @@ public class Soulmates
     }
     public int? NickToSoulmateGroup(string nick)
     {
-        return soulmatesByName.ContainsKey(nick) ? soulmatesByName[nick] : null;
+        return soulmateGroupsByName.ContainsKey(nick) ? soulmateGroupsByName[nick] : null;
     }
     public bool PidIsSoulmate(Pid id)
     {

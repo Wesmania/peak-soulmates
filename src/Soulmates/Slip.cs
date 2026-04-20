@@ -14,17 +14,17 @@ public static class SlipPatch1
         if (!Plugin.config.SharedSlip()) return;
 
         // Repeat function's logic, but for soulmate.
-        if (!(__instance.counter < 3f))
+        if (!(__instance.timeSinceLastSlipped < 3f))
         {
-            Character componentInParent = other.GetComponentInParent<Character>();
-            if (!(bool)componentInParent) return;
-            int cnum = componentInParent.photonView.Owner.ActorNumber;
+            bool c = CharacterRagdoll.TryGetCharacterFromCollider(other, out var character);
+            if (!c) return;
+            int cnum = character.photonView.Owner.ActorNumber;
             Pid? cpid = SteamComms.PhotonIdToPid(cnum);
             if (cpid == null) return;
-            if (Plugin.globalSoulmates.PidIsSoulmate(cpid.Value))
+            if (Plugin.globalSoulmates.PidIsSoulmate(cpid))
             {
                 // A bit awkward since now the timeout is shared between both players. Oh well.
-                __instance.counter = 0f;
+                __instance.lastSlipped = Time.time;
                 __instance.relay.view.RPC("RPCA_TriggerWithTarget", RpcTarget.All, __instance.transform.GetSiblingIndex(), Character.localCharacter.refs.view.ViewID);
             }
         }
