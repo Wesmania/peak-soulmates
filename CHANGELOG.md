@@ -32,9 +32,9 @@ First kind of working version
 
 ## V0.2.0
 
-* Don't try to synchronize status when soulmate schange. Too complex, and
+* Don't try to synchronize status when soulmates change. Too complex, and
   probably unintuitive for players.
-* Use Photon's inMasterClient to decide who should recalculate soulmates.
+* Use Photon's isMasterClient to decide who should recalculate soulmates.
 
 ## V0.2.1
 
@@ -105,3 +105,8 @@ First kind of working version
 * Fix a crash caused by Photon reporting multiple players with the same name.
   * Might still be some bugs caused by this, who knows.
 * Cache healing events too, Fairy Lantern sends them once per frame.
+
+## V0.3.3
+
+* Switch to using nicknames as soulmate identifiers. Might help with rejoins, might break everything.
+* Probably fix slipping on jellyfish.
