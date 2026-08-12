@@ -110,3 +110,7 @@ First kind of working version
 
 * Switch to using nicknames as soulmate identifiers. Might help with rejoins, might break everything.
 * Probably fix slipping on jellyfish.
+
+## V0.3.4
+
+* Bare minimum needed for the mod to reach shore without crashing. No features from new update yet.
