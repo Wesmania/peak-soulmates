@@ -72,6 +72,7 @@ public struct UpdateWeight
 {
     public float weight = 0.0f;
     public float thorns = 0.0f;
+    public float arrows = 0.0f;
 
     public UpdateWeight() { }
     public string Serialize()

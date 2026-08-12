@@ -25,7 +25,7 @@ public static class Weight
         }
         var old = playerWeights[id];
         playerWeights[id] = w;
-        return old.weight != w.weight || old.thorns != w.thorns;
+        return old.weight != w.weight || old.thorns != w.thorns || old.arrows != w.arrows;
     }
 
     public static UpdateWeight getLocalWeight()
@@ -33,6 +33,7 @@ public static class Weight
         UpdateWeight w;
         w.weight = 0.0f;
         w.thorns = 0.0f;
+        w.arrows = 0.0f;
 
         Pid id = SteamComms.MyNumber();
         if (!playerWeights.ContainsKey(id))
@@ -72,6 +73,7 @@ public static class Weight
         UpdateWeight soulmateWeights;
         soulmateWeights.weight = 0;
         soulmateWeights.thorns = 0;
+        soulmateWeights.arrows = 0;
 
         foreach (var soulmate in allSoulmates) {
             if (!soulmate.c.isLiv())
@@ -84,12 +86,14 @@ public static class Weight
             }
             soulmateWeights.weight += playerWeights[soulmate.p.id].weight;
             soulmateWeights.thorns += playerWeights[soulmate.p.id].thorns;
+            soulmateWeights.arrows += playerWeights[soulmate.p.id].arrows;
         }
 
         float coeff = Plugin.config.SoulmateStrength();
 
         original.weight = (original.weight + soulmateWeights.weight * coeff) / (coeff * soulmateCount + 1);
         original.thorns += soulmateWeights.thorns * coeff;    // Thorns are cumulative
+        original.arrows += soulmateWeights.arrows * coeff;   // Arrows are cumulative
 
         return original;
     }
@@ -140,9 +144,15 @@ public static class Weight
         {
             return w.weight;
         }
-        else
+        else if (kind == CharacterAfflictions.STATUSTYPE.Thorns)
         {
             return w.thorns;
         }
+        else if (kind == CharacterAfflictions.STATUSTYPE.Arrow)
+        {
+            return w.arrows;
+        }
+        // Never reached
+        return w.weight;
     }
 }

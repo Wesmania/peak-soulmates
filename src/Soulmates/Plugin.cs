@@ -19,7 +19,7 @@ public static class Extensions
 {
     public static bool isAbsolute(this CharacterAfflictions.STATUSTYPE t)
     {
-        return t == CharacterAfflictions.STATUSTYPE.Weight || t == CharacterAfflictions.STATUSTYPE.Thorns;
+        return t == CharacterAfflictions.STATUSTYPE.Weight || t == CharacterAfflictions.STATUSTYPE.Thorns || t == CharacterAfflictions.STATUSTYPE.Arrow;
     }
     public static bool isShared(this CharacterAfflictions.STATUSTYPE t)
     {
