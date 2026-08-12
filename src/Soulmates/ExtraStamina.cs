@@ -109,15 +109,15 @@ public static class StaminaPatch
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch("UseStamina", typeof(float), typeof(bool))]
-    public static void UseStaminaPrefix(Character __instance, float usage, bool useBonusStamina, out float __state)
+    [HarmonyPatch("UseStamina", typeof(float), typeof(bool), typeof(bool))]
+    public static void UseStaminaPrefix(Character __instance, float usage, bool useBonusStamina, bool ignoreAscents, out float __state)
     {
         __state = __instance.data.extraStamina;
     }
 
     [HarmonyPostfix]
-    [HarmonyPatch("UseStamina", typeof(float), typeof(bool))]
-    public static void UseStaminaSuffix(Character __instance, float usage, bool useBonusStamina, float __state)
+    [HarmonyPatch("UseStamina", typeof(float), typeof(bool), typeof(bool))]
+    public static void UseStaminaSuffix(Character __instance, float usage, bool useBonusStamina, bool ignoreAscents, float __state)
     {
         if (!__instance.IsLocal) return;
         SendStaminaDiff(__instance, __instance.data.extraStamina - __state);
