@@ -67,16 +67,20 @@ public class SharedDamagePatch
         e.type = statusType;
         e.value = diff;
         e.kind = SharedDamageKind.SET;
+        e.decreasedNaturally = false;
+        e.ignoreInvincibility = false;
         StatusPostfix(__instance, e);
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool))]
-    public static void AddStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, out SharedDamage __state)
+    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool), typeof(bool))]
+    public static void AddStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, bool ignoreInvincibility, out SharedDamage __state)
     {
         __state.type = statusType;
         __state.value = amount;
         __state.kind = SharedDamageKind.ADD;
+        __state.decreasedNaturally = false;
+        __state.ignoreInvincibility = ignoreInvincibility;
 
         if (!isRecursiveStatusCall.ContainsKey(__instance.character.photonView.ViewID))
         {
@@ -86,8 +90,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPostfix]
-    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool))]
-    public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, SharedDamage __state)
+    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool), typeof(bool))]
+    public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, bool ignoreInvincibility, SharedDamage __state)
     {
         isRecursiveStatusCall[__instance.character.photonView.ViewID]--;
         if (isRecursiveStatusCall[__instance.character.photonView.ViewID] == 0)
@@ -103,6 +107,8 @@ public class SharedDamagePatch
         __state.type = statusType;
         __state.value = amount;
         __state.kind = SharedDamageKind.SUBTRACT;
+        __state.decreasedNaturally = decreasedNaturally;
+        __state.ignoreInvincibility = false;
 
         if (!isRecursiveStatusCall.ContainsKey(__instance.character.photonView.ViewID))
         {

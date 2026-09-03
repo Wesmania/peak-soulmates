@@ -57,6 +57,8 @@ public struct SharedDamage
     public CharacterAfflictions.STATUSTYPE type;
     public float value;
     public SharedDamageKind kind;
+    public bool decreasedNaturally;
+    public bool ignoreInvincibility;
     public string Serialize()
     {
         return JsonConvert.SerializeObject(this);

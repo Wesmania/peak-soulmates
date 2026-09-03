@@ -43,7 +43,7 @@ public partial class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = Logger;
-        Log.LogInfo($"Plugin {Name} version 0.3.4 is loaded!");
+        Log.LogInfo($"Plugin {Name} version 0.3.5 is loaded!");
 
         config = new(Config);
         if (!config.Enabled())
@@ -140,10 +140,10 @@ public partial class Plugin : BaseUnityPlugin
             switch (damage.kind)
             {
                 case SharedDamageKind.ADD:
-                    affs.AddStatus(damage.type, damage.value);
+                    affs.AddStatus(damage.type, damage.value, damage.ignoreInvincibility);
                     break;
                 case SharedDamageKind.SUBTRACT:
-                    affs.SubtractStatus(damage.type, damage.value);
+                    affs.SubtractStatus(damage.type, damage.value, damage.decreasedNaturally);
                     break;
                 case SharedDamageKind.SET:
                     // It's a diff

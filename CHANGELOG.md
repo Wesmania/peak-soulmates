@@ -114,3 +114,7 @@ First kind of working version
 ## V0.3.4
 
 * Bare minimum needed for the mod to reach shore without crashing. No features from new update yet.
+
+## V0.3.5
+
+* Fix compatibility with new update.
