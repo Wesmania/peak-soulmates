@@ -69,18 +69,22 @@ public class SharedDamagePatch
         e.kind = SharedDamageKind.SET;
         e.decreasedNaturally = false;
         e.ignoreInvincibility = false;
+        e.ignoreSkeleton = false;
+        e.playEffects = true;
         StatusPostfix(__instance, e);
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool), typeof(bool))]
-    public static void AddStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, bool ignoreInvincibility, out SharedDamage __state)
+    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool), typeof(bool), typeof(bool))]
+    public static void AddStatusPrefix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, bool ignoreInvincibility, bool ignoreSkeleton, out SharedDamage __state)
     {
         __state.type = statusType;
         __state.value = amount;
         __state.kind = SharedDamageKind.ADD;
         __state.decreasedNaturally = false;
         __state.ignoreInvincibility = ignoreInvincibility;
+        __state.ignoreSkeleton = ignoreSkeleton;
+        __state.playEffects = playEffects;
 
         if (!isRecursiveStatusCall.ContainsKey(__instance.character.photonView.ViewID))
         {
@@ -90,8 +94,8 @@ public class SharedDamagePatch
     }
 
     [HarmonyPostfix]
-    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool), typeof(bool))]
-    public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, bool ignoreInvincibility, SharedDamage __state)
+    [HarmonyPatch("AddStatus", typeof(CharacterAfflictions.STATUSTYPE), typeof(float), typeof(bool), typeof(bool), typeof(bool), typeof(bool), typeof(bool))]
+    public static void AddStatusPostfix(CharacterAfflictions __instance, CharacterAfflictions.STATUSTYPE statusType, float amount, bool fromRPC, bool playEffects, bool notify, bool ignoreInvincibility, bool ignoreSkeleton, SharedDamage __state)
     {
         isRecursiveStatusCall[__instance.character.photonView.ViewID]--;
         if (isRecursiveStatusCall[__instance.character.photonView.ViewID] == 0)
@@ -109,6 +113,8 @@ public class SharedDamagePatch
         __state.kind = SharedDamageKind.SUBTRACT;
         __state.decreasedNaturally = decreasedNaturally;
         __state.ignoreInvincibility = false;
+        __state.ignoreSkeleton = false;
+        __state.playEffects = true;
 
         if (!isRecursiveStatusCall.ContainsKey(__instance.character.photonView.ViewID))
         {

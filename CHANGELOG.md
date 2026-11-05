@@ -118,3 +118,12 @@ First kind of working version
 ## V0.3.5
 
 * Fix compatibility with new update.
+
+## V0.3.6
+
+* Fix compatibility with new update.
+* Fix invocation of status adding/removing functions which could've caused all kinds of funky bugs.
+
+## V0.3.7
+
+* Fix solumate recalculation triggering twice in a row, causing inconsistent soulmate assignment between players.

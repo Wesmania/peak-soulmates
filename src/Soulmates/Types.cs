@@ -59,6 +59,9 @@ public struct SharedDamage
     public SharedDamageKind kind;
     public bool decreasedNaturally;
     public bool ignoreInvincibility;
+    public bool ignoreSkeleton;
+    public bool playEffects;
+
     public string Serialize()
     {
         return JsonConvert.SerializeObject(this);

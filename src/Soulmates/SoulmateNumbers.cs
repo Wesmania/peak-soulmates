@@ -82,6 +82,7 @@ public class SoulmateProtocol
 {
     public static SoulmateProtocol instance = new();
     public RecalculateSoulmatesEvent? previousSoulmates = null;
+    public DateTime recalculateBackoffHack = DateTime.MinValue;
     public Soulmates? OnNewSoulmates(string json)
     {
         Plugin.Log.LogInfo("Received recalculate soulmate event");
@@ -178,7 +179,13 @@ public class SoulmateProtocol
     public RecalculateSoulmatesEvent? PrepareNewSoulmates(bool firstTime)
     {
         if (!SteamComms.IAmHost()) return null;
-        Plugin.Log.LogInfo("I am master client, preparing new soulmate list");
+        if (DateTime.Now < this.recalculateBackoffHack.AddSeconds(3))
+        {
+            return null; // Skip spurious recalculations
+        }
+        this.recalculateBackoffHack = DateTime.Now;
+
+        Plugin.Log.LogInfo($"I am master client, preparing new soulmate list {firstTime}");
 
         var players = SteamComms.AllPlayers();
         var ids = players.Select(x => x.id).ToList();
